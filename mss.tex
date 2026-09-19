@@ -21,7 +21,24 @@
 \usepackage{listings}
 \lstset{basicstyle=\ttfamily\small,columns=fullflexible,
         keepspaces=true,frame=single,framesep=6pt,
-        captionpos=b,breaklines=true,xleftmargin=0pt}
+        captionpos=b,breaklines=true,xleftmargin=0pt,
+        escapeinside={(*}{*)},
+        literate=
+          {≡}{{≡}}1 {≔}{{≔}}1 {↦}{{↦}}1 {→}{{→}}1 {⊢}{{⊢}}1 {∵}{{∵}}1 {▹}{{▹}}1 {λ}{{λ}}1
+          {<}{{<}}1 {>}{{>}}1 {|}{{|}}1 {/}{{/}}1 {⊑}{{⊑}}1 {∘}{{∘}}1 {⇄}{{⇄}}1 {⋈}{{⋈}}1 {Υ}{{Υ}}1
+          {≟}{{≟}}1 {₀}{{₀}}1 {₁}{{₁}}1 {₂}{{₂}}1 {₃}{{₃}}1 {₄}{{₄}}1 {₅}{{₅}}1 {₆}{{₆}}1
+          {₇}{{₇}}1 {₈}{{₈}}1 {₉}{{₉}}1 {₍}{{₍}}1 {₎}{{₎}}1}
+% listings is not Unicode-aware: given a raw non-ASCII glyph it emits
+% the character outside its own output buffer, so the line comes out
+% reordered (U+27E8/U+27E9 moved everything between them to just after
+% the closing bracket; a fuel subscript landed mid-identifier).  The
+% literate map above makes each glyph one box, which fixes the ordering.
+% Note that < > | / are mapped too although they are plain ASCII: when
+% some characters on a line go through literate and the rest through
+% listings' ordinary path, the two interleave and the line is reordered
+% again, so every character that shares a line with a mapped glyph has
+% to be mapped as well.  escapeinside stays available for anything that
+% still needs math mode.
 
 \definecolor{okgreen}{HTML}{2F7D32}
 \definecolor{openamber}{HTML}{B5651D}
@@ -153,7 +170,7 @@ compiles to a resolver.
   calculus cannot perform (\S\ref{sec:boundary}).
 \item Object-language declarations that generate an interpreter's
   furniture --- constructors, case, spine walker, rebuilder, default
-  arms and fuel loop --- which makes authoring a semantics at one site a
+  equations and fuel loop --- which makes authoring a semantics at one site a
   two-line edit rather than a term construction
   (\S\ref{sec:interpreters}).
 \item A scry namespace as a language feature: typed paths, a resolver as
@@ -174,21 +191,44 @@ compiles to a resolver.
 
 \section{Background}\label{sec:background}
 
-\status{One page, cited and not restated. $SKI$ and bracket abstraction;
-Scott encoding and the continuation orders that are the ABI; the
-artifact of \citet{Davis2027} --- \texttt{whnfF}, the unquoter
-\texttt{UQ}, the fuel semantics in which fuel $k$ permits $k$
-step-attempts, and Proposition 3.1 --- and the counts this paper
-reproduces rather than re-derives. Fix the measure convention here as
-well, since four rulers get used on the same object and a reader who
-confuses them will think the paper contradicts itself: \texttt{whnfF}
-is 618 \emph{atoms}, 1{,}235 tree \emph{nodes}, 348 distinct nodes once
-sharing is counted, and 2{,}109 \emph{characters} when printed. Atoms
-are the unit for every claim in this paper; the others appear only where
-they are named. Everything a reader needs for \S\ref{sec:interpreter}
-and nothing more. The separation of credit belongs
-here: the first paper establishes that a self-interpreter exists and
-what it costs; this one asks what a language owes it.}
+The calculus is the usual one.  Terms are built from \texttt{S},
+\texttt{K} and \texttt{I} by application alone, written
+left-associatively, with the rules $I\,x \to x$, $K\,x\,y \to x$ and
+$S\,f\,g\,x \to f\,x\,(g\,x)$.  There are no variables and so no
+binding, no substitution and no environment; a surface language with
+binders reaches this calculus by bracket abstraction, which is the whole
+of the compiler's back end \citep{Turner1979b}.
+
+Data is Scott-encoded.  A datum of an $n$-constructor type is a function
+of $n$ continuations that applies the one belonging to its own
+constructor to its own fields, so a value \emph{is} its own case
+analysis and there is no separate eliminator
+\citep{Scott1962,Jansen2013,BohmBerarducci1985}.  The order of the
+continuations is the order of the declaration, and it is part of the
+interface rather than a convention: a wrong continuation order is not a
+type error but silently different behaviour, which is why
+\S\ref{sec:boundary} treats case completeness and order as the first
+thing a checker owes an author.
+
+The artifact this paper compiles to was built by \citet{Davis2027}: a
+fueled normal-order interpreter for $SKI$, written in $SKI$, 618 atoms,
+with an unquoter \texttt{UQ} at 43 and structural equality on encoded
+terms at 240.  Fuel is a Scott numeral and its semantics is exact --- a
+budget of $k$ permits $k$ step-attempts, the last of which must be the
+no-redex check --- so a run that performs $s$ contractions needs $s+1$.
+That paper reports the interpreter running a one-step object reduction
+in 340 host contractions, running the unquoter's output in 91,556, and
+running \emph{itself} in 504,930; it also proves the proposition this
+paper's design is organized around, that no closed term can quote a live
+term.  We reproduce those counts and do not re-derive them.
+
+Four rulers get used on one object and are worth separating now, since a
+reader who confuses them will think the paper contradicts itself.  The
+interpreter is 618 \emph{atoms}; as a tree that is 1{,}235 \emph{nodes};
+sharing brings the graph to 348 \emph{distinct nodes}; and printing it
+in the notation used here takes 2{,}109 \emph{characters}.  Atoms are
+the unit for every claim below, and the others appear only where they
+are named.
 
 \section{Lineage}\label{sec:lineage}
 
@@ -331,28 +371,28 @@ upper one.
 \begin{enumerate}[nosep]
   \item \texttt{hd}, the head extractor;
   \item \texttt{tl}, the tail extractor;
-  \item \texttt{resI}, the result $I$ arm;
-  \item \texttt{resK}, the result $K$ arm;
+  \item \texttt{resI}, the $I$ result equation;
+  \item \texttt{resK}, the $K$ result equation;
   \item \texttt{Y}, the fixed-point combinator;
-  \item \texttt{resS}, the result $S$ arm;
+  \item \texttt{resS}, the $S$ result equation;
   \item \texttt{pair}, the pair constructor;
   \item \texttt{App}, the application constructor;
   \item \texttt{UQ}, the unquoter;
-  \item \texttt{rb1}, the first rebuilder arm;
+  \item \texttt{rb1}, the first rebuilder equation;
   \item \texttt{spApp}, the spine application handler;
   \item \texttt{rb}, the rebuilder;
-  \item \texttt{stepI1}, the first step $I$ arm;
-  \item \texttt{stepK2}, the second step $K$ arm;
-  \item \texttt{stepI}, the step $I$ arm;
-  \item \texttt{stepK1}, the first step $K$ arm;
-  \item \texttt{stepK}, the step $K$ arm;
+  \item \texttt{stepI1}, the first $I$ step equation;
+  \item \texttt{stepK2}, the second $K$ step equation;
+  \item \texttt{stepI}, the $I$ step equation;
+  \item \texttt{stepK1}, the first $K$ step equation;
+  \item \texttt{stepK}, the $K$ step equation;
   \item \texttt{sp}, the spine walker;
-  \item \texttt{stepS3}, the third step $S$ arm;
-  \item \texttt{stepS2}, the second step $S$ arm;
-  \item \texttt{stepS1}, the first step $S$ arm;
-  \item \texttt{stepS}, the step $S$ arm;
+  \item \texttt{stepS3}, the third $S$ step equation;
+  \item \texttt{stepS2}, the second $S$ step equation;
+  \item \texttt{stepS1}, the first $S$ step equation;
+  \item \texttt{stepS}, the $S$ step equation;
   \item \texttt{step}, the step walker from the spine to the head leaf;
-  \item \texttt{loop1}, the first loop arm; and
+  \item \texttt{loop1}, the first loop equation; and
   \item \texttt{whnfF}, the whole interpreter.
 \end{enumerate}
 \end{multicols}
@@ -400,7 +440,7 @@ renames exact structural matches as a macro.}\label{tab:whnfF}
 \noindent
 Note that the expansions of \texttt{rb}, \texttt{UQ}, \texttt{sp}, and 
 \texttt{whnfF} begin with the fourteen atoms of $Y$.  The fixpoint tie 
-is a prefix of the emitted term, and which arms recurse can be read off 
+is a prefix of the emitted term, and which supercombinators recurse can be read off 
 the object itself.  This is perhaps the one piece of the surface's 
 structure that survives bracket abstraction in a form a reader can 
 observe for himself.
@@ -438,6 +478,8 @@ typed surface discipline.  They name and highlight the components of
 \texttt{whnfF} and other recurrent supercombinators, augmented with
 affordances to make the language expressive and composable.
 
+A language description of SKIjack is provided in Appendix~\ref{sec:language-description}.
+
 \subsection{Design principles}
 
 Since quotation of live terms is not supported, the language relies on 
@@ -460,19 +502,22 @@ efficient execution.
 
 SKIjack supplies one grammar with two lexicons (ASCII-only and Unicode), 
 with a bijective token table checked at import, and the round-trip and 
-lift laws as tests.  Given agent-driven development workflows, it is
-pragmatic to maintain both depending on the aesthetic and practical 
-considerations of the development environment.
+lift laws as regression tests.  Given agent-driven development 
+workflows, it is pragmatic to maintain both depending on the aesthetic 
+and practical considerations of the development environment.
 Listing~\ref{lst:unicode} and Listing~\ref{lst:ascii} show the same 
-simple example.
+simple example.  These are, by themselves, not a complete program:
+a namespace literal compares paths with \texttt{EQ5}, and \texttt{wfN} 
+must be a core in scope, so a prelude is required.  With those supplied,
+the program compiles to the results given in Table~\ref{tab:lookup}.
 
 \begin{lstlisting}[label=lst:unicode,
                    caption={A simple example of SKIjack code under the
                    Unicode lexicon.}]
-seg  ≡ Nat ∣ Two ∣ Three
-path ≡ Nil ∣ Cons seg path
-resolve ≔ ⦃/nat/two ↦ ⟨I⟩, /nat/three ↦ ⟨K⟩⦄
-answer  ≔ wfN resolve ⊢ ⟨∵/nat/three⟩₁₀
+seg  ≡ Nat | Two | Three
+path ≡ Nil | Cons seg path
+resolve ≔ ns{/nat/two ↦ <I>, /nat/three ↦ <K>}
+answer  ≔ wfN resolve ⊢ <∵/nat/three>₁₀
 \end{lstlisting}
 
 \begin{lstlisting}[label=lst:ascii,
@@ -484,31 +529,222 @@ resolve := ns{/nat/two => <I>, /nat/three => <K>}
 answer  := wfN resolve |- <?^/nat/three>@10
 \end{lstlisting}
 
+\begin{table}[htb]
+\caption{The artifact of Listing~\ref{lst:ascii}.  \texttt{Cons} is the
+same twenty-two atoms as the \texttt{cons} of Table~\ref{tab:atoms}: a
+two-field constructor in second position is one term whatever the type
+it belongs to was called. \texttt{answer} has been lifted against the
+program's dictionary.}\label{tab:lookup}
+\centering\footnotesize
+\begin{tabular}{@{}l r >{\raggedright\arraybackslash\ttfamily}p{3.9in}@{}}
+\toprule
+\textrm{form} & \textrm{atoms} & \textrm{expansion} \\
+\midrule
+\texttt{Nat}     &     4 & S (K K) K \\
+\texttt{Two}     &     2 & K K \\
+\texttt{Three}   &     3 & K (K I) \\
+\texttt{Nil}     &     1 & K \\
+\texttt{Cons}    &    22 & S (K (S (K K))) (S (S (K S) (S (K K) (S (K S) (S (K (S I)) K)))) (K K)) \\
+\midrule
+\texttt{resolve} & 5{,}375 & \textrm{omitted for brevity} \\
+\texttt{answer}  & 9{,}007 & wfN resolve (suc (suc (suc (suc (suc (suc (suc (suc (suc (suc K)))))))))) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+A three-segment path costs 2{,}485 atoms once quoted because at level 1 
+every constructor application is itself encoded, and \texttt{resolve} 
+costs 5{,}375 because the namespace literal expands to a chain that 
+compares the incoming path against each key with \texttt{EQ5} at 240 
+atoms, once per key, over full encodings of both.  In reduced form, it 
+gives \texttt{RValN K} in 28{,}661 contractions; the sibling declaration 
+that looks up \texttt{/nat/two} instead gives \texttt{RValN I} in
+14{,}502, since the first key it tries is the one that matches.
+As can be seen, SKIjack and its \texttt{whnfF} interpreter are far from
+concise, but they are deterministic.
+
 \subsection{Representation ABI}
 
+A handful of representation choices sit between the compiler and
+everything written in the language.  We call this the representation 
+ABI because it specifies the contract between separately produced 
+compiled artifacts, not because there are bytes or linkers.  A term 
+emitted by this compiler must interoperate with terms built by hand, 
+and with native code that recognizes them; the two would fail to 
+compose if either disagreed about the order of continuations.  In a 
+Scott encoding that order is simultaneously the layout of a datum and 
+the convention for calling it.
+
+A cell \texttt{[a b]} is the Scott 
+pair $\lambda c.\,c\,a\,b$, whose only operation is to hand its 
+components to a selector; the head is \texttt{p K} and the tail
+\texttt{p (K I)}.  Axis addressing follows a binary tree numbering, 
+with axis 1 being the whole, axis $2n$ the head of axis $n$ and $2n+1$ 
+its tail, and an axis compiles to the corresponding chain of 
+projections at one projection per bit.  Axes only validly address
+cells; a term's application tree is code, which by Proposition 3.1
+cannot be inspected by any term, and so the notation that reaches into 
+data stops at that boundary.
+
+A type declaration is an ordered constructor list, with the order 
+specified in the ABI.  The declaration generates each constructor as 
+$\lambda \mathit{fields}.\,\lambda c_1\ldots c_n.\,c_i\,\mathit{fields}$
+as well as the case form to apply a datum to $n$ continuations in 
+declaration order, per the schema of \citet{BohmBerarducci1985} in its 
+Scott rather than Church variant. Booleans are \texttt{K} for yes and 
+\texttt{K I} for no, so a conditional is application to two 
+continuations.  Numerals are Scott numerals and serve as fuel; there is 
+no native integer, and arithmetic is unary.
 
 \subsection{Kernel forms}
 
+The kernel contains about a dozen forms and is intended to remain fixed.
+Each form has exactly one expansion, given by a fold over the
+syntax tree: a name resolves in the compile-time table to a binder, a
+sibling equation, a constructor or a macro; juxtaposition denotes 
+application; a cell is a pair; an axis pick is a projection chain; a 
+lambda and an equation are bracket abstraction over their binders; a 
+case applies a datum to one continuation per constructor in declaration 
+order; a quotation is a Scott encoding computed at compile time; a 
+macro is expanded at its use site; and the two evaluation forms hand a 
+quotation to an interpreter.  Everything else is composed of these 
+primitives.
+
+Because every rule is a fold, the expander has no semantics of its own: 
+the same source gives the same closed term, atom for atom, 
+deterministically and context-free.  The surface grows in macros and in 
+the library rather than in the compiler.
+
 \subsection{Supercombinators vs.\ macros}
 
+A supercombinator and a macro can look alike in source code but are not
+equivalent.  An equation is lambda-lifted over its binders and over the 
+sibling equations it calls, tied with $Y$ where it recurses, and 
+emitted once as a supercombinator.  A supercombinator is a closed term 
+forming a single node in the graph and shared by every use.  In 
+contrast, a macro has no runtime existence but is expanded into each 
+use site, so it costs nothing to reach and is duplicated per use.  
+Small things (derived combinators, booleans, projections) tend to be 
+macros, while large things (an interpreter, equality on encoded data, 
+the standard library) prefer to be supercombinators.  (Hughes proposed 
+supercombinators as the alternative to compiling into a fixed 
+combinator set, whose expansions blow up in size; here the fixed set is 
+the non-negotiable instruction set, so each lifted definition is 
+abstracted into $\{S,K,I\}$ after lifting.)
+
+The structural consequence is more important than the cost.  Compilation
+leaves the supercombinators intact and nested inside one another:  in 
+the compiled interpreter of \S\ref{sec:interpreter}, \texttt{sp} is a 
+subterm of \texttt{step}, \texttt{step} of \texttt{whnfF}, \texttt{rb} 
+of \texttt{stepS}, and 40 of the term's 348 distinct nodes are entries 
+of the program's own dictionary.  This makes a supercombinator 
+liftable back to its name, and lets a runtime recognize it
+(\S\ref{sec:runtime}); a large open term offers neither improvement.  
+Macros are hygienic by default, since a capture is invisible in source 
+and shows up only as a body silently reading the wrong binding; a 
+marked capturing form is reserved for the cases that want it.
 
 \subsection{The standard subject}
 
+A language of this shape wants a library, and the library wants to
+arrive as data rather than as a compiler built-in.  We call this a
+subject in the tradition of subject-oriented programming.  The
+virtual machine applies a loaded program to one argument, the
+\emph{subject}, which carries the library at fixed axes---the
+primitives and $Y$, pairs and projections, Scott lists and numerals, 
+equality on encoded terms, the unquoter, and the interpreters
+themselves as ordinary supercombinators.  (A subject is not the same as
+an environment: names are resolved in a compile-time table and are gone 
+before anything runs, and no compiled program applies itself to the 
+subject to find its own names.)
+
+% This is the one component of the design that is specified and not
+% built.  Until it exists, a library name is inlined as its expanded term
+% at each use, exactly as the artifact of \citet{Davis2027} writes its
+% encodings out by hand, and a name used twice in one quotation is
+% duplicated rather than shared.  The atom counts reported in this paper
+% are therefore upper bounds in a specific and uninteresting way: a shared
+% subject would lower them without changing a single reduction.
+
 \subsection{The quotation line}
 
+So far, SKIjack is a fairly ordinary supercombinator language.  The
+line that separates it from SASL or SKIM is where a term may be turned
+into data given that quotation is only available at compile time.
+The form \texttt{<t>} emits the Scott encoding of \texttt{t}
+against the enclosing program's object type, computed by the expander;
+inside the brackets a name is a constructor of that type if it is one
+and is otherwise inlined and encoded in place.  There is no form, and
+\emph{there can be no form}, that takes a live value and yields its 
+code.  Even if the base representation is always $\{S,K,I\}$, SKIjack
+and the \texttt{whnfF} interpreter are not truly homoiconic, as code
+can never cross back over into data.
 
+SKIjack thus makes this refusal explicit and visible rather than 
+silent through its modest type system.  Equality is offered on encoded 
+data and refused on functions; a namespace key is a value of a declared 
+path type and not an arbitrary term; a quotation's argument is
+source and not an expression to be evaluated first.  Each of those
+would require a function would have to behave as data, so the
+checker rejects a program that puts one there before the expander is
+reached (\S\ref{sec:boundary}).
 
+\section{Execution model}\label{sec:execution-model}
+
+A declaration runs at one of two levels:
+\begin{itemize}[nosep]
+  \item  \emph{Level 0}: the compiled term is handed to a reducer as it 
+  stands.  This is ordinary evaluation: weak reduction is call-by-name, 
+  arguments are never forced early, and no form needs thunking.  
+  Nothing blocks and nothing can be observed partway; a term either 
+  reaches weak head normal form or it does not.
+  \item  \emph{Level 1}: a quotation is handed to an interpreter 
+  together with a fuel budget, written \texttt{<t>@n}, or \texttt{I |- 
+  <t>@n} to name an interpreter other than the default.  This compiles 
+  to an application: the interpreter, its parameters, the Scott 
+  numeral, and the quoted program, as the lifted form in
+  \S\ref{sec:language} shows.  Fuel must be explicit because a budget 
+  of $k$ permits $k$ step-attempts, of which the last must be the 
+  no-redex check, so a computation of $s$ contractions needs $s+1$. The 
+  budget cannot be inferred by the compiler, since a term's running 
+  time is its running time and convergence is only semi-decidable.  
+  Elided fuel, written \texttt{@[]}, is therefore a \emph{runtime 
+  policy} rather than a compile-time value: the budget doubles from a 
+  small start until the program produces something other than a timeout 
+  or a configured ceiling is reached, and the ceiling is reported as a 
+  timeout rather than hidden. (The one case a compiler could fill in is 
+  a term it can prove affine, and that case is not interesting enough 
+  to special-case.)
+\end{itemize}
+
+The levels differ in what is observable.  At level 1, a program's steps
+are counted, its divergence is bounded, its errors are values, and its
+scry operation can block.  All of these are available because the
+interpreter is itself an ordinary term the program may name.
+Virtualization is not cheap, in any case:  \citet{Davis2027} measured
+the base interpreter at 340 host contractions for a single object step.
+
+\section{Interpreters as declarations}\label{sec:interpreters}
+
+A central move of \citet{Davis2027} was to author the semantics of a 
+new  symbol at one site of an interpreter. It performed that move by 
+hand, in  a definitional layer with no surface language above it. With 
+SKIjack it becomes a declaration. Before extending the interpreter, 
+though, we reproduce it: Listing~\ref{lst:whnfF} defines \texttt{whnfF} 
+in SKIjack and it compiles atom for atom to the  term printed in 
+Appendix~B of \citet{Davis2027}l; this compiler did not exist when that 
+term was built, arriving at the same 618 atoms.
 
 \begin{lstlisting}[float=htb,
                    label=lst:whnfF,
                    caption={The \texttt{whnfF} function defined in 
                    SKIjack.  Pleasingly, this program produces the 
                    identical $SKI$ artifact as Appendix B of
-                   \citet{Davis2027} despite SKIjack not existing at the 
-                   time of composition.}]
-term === S | K | I | App term term
-maybe === Nothing | Just term
-whnfF := {
+                   \citet{Davis2027} despite SKIjack not existing at 
+                   the time of composition.}]
+term ≡ S | K | I | App term term
+maybe ≡ Nothing | Just term
+whnfF ≔ {
   step m = sp m nil stepS stepK stepI
   loop1 f m n2 = step m (Just m) (f n2)
   loop n m = n Nothing (loop1 loop m)
@@ -531,94 +767,287 @@ stepS1 x r = r Nothing (stepS2 x)
 stepS args = args Nothing stepS1
 \end{lstlisting}
 
+A type declaration names an object language, and from it the compiler
+generates what an interpreter over that language needs: the
+constructors and the case form, the spine walker that decomposes an
+application into a head and an argument list, the rebuilder that puts
+one back together, a default step equation for each leaf of the object 
+type, and the fuel loop, whose shape is read off the outcome and result types. The timeout constructor is the last terminal of the result type,
+which for \texttt{maybe} is \texttt{Nothing}.
 
-SKIjack is not self-bootstrapping:  in any case, self-compilation would
-require a parser which mapped arbitrary ASCII input to the internal 
-representation of SKIjack terms.  While not impossible, the operational
-overhead does not seem to merit the additional effort or reveal new
-premises for $SKI$ as a tool.  Furthermore, quotation of live terms is 
-not supported, which limits the ability to perform self-representation 
-within the language itself (no runtime \texttt{eval}).  The language is
-Turing-complete but certain functions are transferred to the VM,
-such as scaffolding the initial evaluation and preserving the state and
-memory arena.
+The original paper's observability pair here reduces to two interpreters
+over a five-constructor object language, differing at the single 
+equation that handles the new leaf, as two lines:
 
-\section{Execution model}\label{sec:execution-model}
+\begin{quote}
+\ttfamily\small
+wf5Abs := \{ stepErr acc = Errd \}\\
+wf5Omg := \{ stepErr acc = omega \}
+\end{quote}
 
-\section{Interpreters as declarations}\label{sec:interpreters}
-
-\status{The payoff section, and where the pair of papers is joined. The
-declaration form and what it generates; then the one-site extension,
-with \texttt{wf5Abs} and \texttt{wf5Omg} differing at a single arm and
-compiling to 768 and 771 atoms, byte-identical to the artifacts; the T3
-observability table reproduced. The sentence this section exists to
-support: the first paper's move --- author a semantics at one site ---
-is here a declaration form, and its cost over the hand construction is
-zero atoms.}
+\noindent The first absorbs the new symbol into an error outcome; the
+second diverges on it.  They compile to 768 and 771 atoms, again 
+matching the artifacts of \citet{Davis2027} atom for atom and they
+reproduce that paper's observability table.  In SKIjack, everything 
+else about them, some seven hundred atoms of walker, rebuilder, step 
+equations and loop, is generated from the three type declarations above 
+them.  (Incidentally, this shows that for $SKI$ constructions, the 
+simple SKIjack compiler is on par with hand construction of $SKI$ 
+expressions.)
 
 \section{The namespace}\label{sec:namespace}
 
-\status{Typed paths as a declared type rather than arbitrary terms; the
-resolver as a core parameter; the namespace literal and what it compiles
-to; blocking, the resume loop, and why re-running from scratch is what
-makes it sound under an append-only namespace; the value-lookup example.
-State the two honest wrinkles in the text and not a footnote: the
-monotonicity hypothesis, and that fuel is not neutral across a resume.}
+The artifact of \citet{Davis2027} accepts any term as a scry path,
+which was the honest description of what it built.  The language does
+not inherit that.  A path is a value of a declared path type --- a list
+of tagged segments, \texttt{path === Nil | Cons seg path} --- and the
+scry form is refused on anything else.  The reason is not tidiness.
+Paths are compared, and comparison is only available on encoded data;
+an arbitrary term as a key would be a function in a position that
+requires a datum, which is the one thing \S\ref{sec:boundary} exists to
+prevent.
+
+The resolver is a parameter of the interpreter core rather than a term
+closed over inside it.  That is what makes a namespace a namespace: the
+core is written once, and supplying a different resolver does not
+recompile it.  A namespace literal is sugar for building one.  It
+expands to a chain that compares the incoming path against each key
+with \texttt{EQ5} over the encodings, answering with the oracle's
+found-constructor at the first match and its not-yet-constructor when
+nothing matches, and the chain is an ordinary closed term like any
+other.  Listing~\ref{lst:ascii} and Table~\ref{tab:lookup} are that
+whole arrangement compiled and run.
+
+What a program does when the namespace has no answer is the substantive
+part.  The interpreter's outcome and result types each carry an extra
+constructor that holds the path that blocked, and the driver, meeting
+one, records the fact and \emph{re-runs the program from the top} under
+a resolver that now knows it.  Re-running looks wasteful and is the
+source of the soundness.  Because the namespace is append-only, a fact
+once learned is never withdrawn, so a later run can only get at least as
+far as an earlier one; the blocked run is not resumed in the middle,
+where the intermediate state would have to be trusted, but discarded and
+replayed against more knowledge.
+
+Two wrinkles belong in the open and not in a footnote.  The first is
+that the argument above is a hypothesis about the namespace and not a
+property of the calculus: if a fact can change, replay proves nothing,
+and the discipline that keeps the namespace monotone is the runtime's to
+enforce.  The second is that fuel is not neutral across a resume.  A
+replayed run spends its budget again from the beginning, so the fuel a
+program needs is a function of how many times it blocked, and a budget
+that sufficed on the first attempt may not suffice on the third.  Both
+are consequences of buying soundness with replay, and neither is
+concealed by the implementation.
 
 \section{Boundary soundness}\label{sec:boundary}
 
-\status{Recommended, and the paper's own theorem rather than a borrowed
-one. Define the fragment; state that an accepted program never places a
-function where data is required, so the operations the calculus cannot
-perform are refused before they can be reached; prove by induction on
-the checker. Add erasure as a corollary --- checking can reject but
-never rewrites, so the emitted term is the same whether it ran or not
---- which is what keeps the laws of \S\ref{sec:impl} intact. If this
-section does not survive, say plainly in \S\ref{sec:intro} that the
-enforcement is tested and not proved.}
+Proposition 3.1 is a statement about terms.  What a language owes its
+users is a statement about programs, and it is this: a program the
+checker accepts never asks the calculus for an operation the calculus
+cannot perform.
+
+There are exactly four positions at which a function would have to
+behave as data --- an operand of equality, the argument of a quotation,
+a key of a namespace literal, and a scry path --- and each is required
+by the checker to be of a declared data type.  The check is a pass over
+the syntax tree that runs before expansion and can only reject: it
+rewrites nothing.  Two things follow.  The first is the statement
+above, by induction over the tree, since a well-typed occupant of each
+position is a datum and every other form is closed under the calculus.
+The second is erasure: because checking cannot rewrite, the emitted term
+is the same whether the check ran or not, so the laws of
+\S\ref{sec:impl} are unaffected by the presence of a type discipline
+and the calculus remains untyped where the interpreter sees it.
+
+We state this as a property the implementation enforces and tests on
+every program in its corpus, rather than as a theorem with a written
+proof; the formalization of the fragment is the obvious next piece of
+work and is not done here.  The type discipline itself stops at this
+stage.  A second stage --- Hindley--Milner over the declared sum types,
+so that \texttt{Suc K} is an error rather than a term --- is designed
+and not built, and declarations already carry the field types it would
+need.
 
 \section{Implementation and evaluation}\label{sec:impl}
 
-\status{The expander as a fold, its passes, and the dictionary. The four
-laws as executable tests. The byte-identity table --- \texttt{whnfF}
-618, \texttt{wf5Abs} 768, \texttt{wf5Omg} 771, \texttt{wfQ} 950,
-\texttt{wfN} 1{,}066, \texttt{EQ5} 240, with T0 at 340 --- and, in the
-same table, the distinction that answers the circularity objection
-before it is raised: the generated forms were designed to reproduce the
-artifact, whereas the long version, written out as ordinary equations
-with generation switched off, reaches the same term without that help.
-The corpus and the test count. One sentence stating that no performance
-claim is made here and why: the reference host is an oracle, not an
-implementation, and the VM is discussed only briefly.}
+A compiler is provided as a Python package, \texttt{skijack}.  Its 
+front end is two lexers over one token table and a single parser, so 
+that the ASCII and Unicode surfaces are the same syntax and not two 
+languages; its middle is the checker of \S\ref{sec:boundary} and the 
+generator of \S\ref{sec:interpreters}; its back end is macro expansion 
+to a fixpoint, name resolution, lambda-lifting and bracket abstraction, 
+each a total function on the tree.
+
+Four laws are executable tests rather than remarks.  Rendering is
+canonical, so $\mathit{expand} \circ \mathit{render} = \mathit{lower}$;
+lifting a term against the dictionary names exact structural matches and
+nothing else, so $\mathit{lower} \circ \mathit{lift} = \mathit{id}$;
+checking can reject but never rewrite, so expansion is the same with it
+on or off; and every dictionary entry is verified behaviourally, by
+applying the term to fresh markers and observing which one comes back,
+never by reading its syntax.  The corpus is 17 programs written in both
+lexicons, and the suite is 705 tests.
+
+The evaluation is a single claim, made by equality of terms.  Six
+programs compile term-identically to artifacts \citet{Davis2027} built 
+by hand:
+
+\begin{center}\small
+\begin{tabular}{@{}lrl@{}}
+\toprule
+program & atoms & \\
+\midrule
+\texttt{whnfF}  &     618 & base interpreter; runs \texttt{<I K>} in T0's 340 contractions \\
+\texttt{wf5Abs} &     768 & five-constructor interpreter, absorbing equation \\
+\texttt{wf5Omg} &     771 & the same, diverging equation \\
+\texttt{wfQ}    &     950 & blocking interpreter, oracle as a parameter \\
+\texttt{wfN}    & 1{,}066 & the same over a typed path namespace \\
+\texttt{EQ5}    &     240 & structural equality on encoded terms \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% (A reader may reasonably object that this is circular, since the forms the compiler generates were designed to reproduce those terms.  The answer is in the first row.  The interpreter can also be written out longhand, as twenty ordinary equations with generation switched off, and it then compiles to the same 618 atoms --- so the agreement is between bracket abstraction and a hand construction, with the generator removed from the argument entirely.  The three-line generated version and the twenty-line written version produce one term.)
+
+No performance claim is made here.  The reference host is an oracle and
+not an implementation: it reduces by substitution, counts every
+contraction, and is slow on purpose, because its counts are the claims.
+What a runtime would do with these terms is \S\ref{sec:runtime} and, in
+earnest, another paper.
 
 \section{The virtual machine}\label{sec:runtime}
 
-\section{Limitations, and what is not claimed}\label{sec:limits}
+The reference reducer is an oracle, and a language that intends to be
+used wants an implementation.  What that implementation must be is
+fixed, unusually, by a theorem rather than by taste.  The two operations
+the calculus cannot perform for itself are quoting a live term and
+recognizing one's structure; the first belongs to the compiler, which
+has the syntax tree and quotes at compile time, and the second belongs
+to the runtime, which holds the term on its tape and may factorise it
+freely \citep{JayGivenWilson2011}.  Matching a compiled subterm against
+a table of known terms and running native code for it --- a jet --- is
+therefore not an optimization of something the language has.  It is the
+only place the operation exists.
 
-\status{Self-hosting, declined, with the reason stated precisely: the
-expander's input is a syntax tree, so it is separable from the parser,
-and what is forgone is not a demonstration but the Futamura projections
-inside the calculus. The type discipline stops at Stage A. There is no
-standard subject yet, so a level-1 library name is inlined rather than
-shared. And the precision this section
-must carry: the language has evaluation of encoded terms, including
-terms built at run time, and lacks reification of live values --- the
-missing operation is \emph{reify}, not \emph{eval}. The paragraph
-currently at the end of \S\ref{sec:language} belongs here.}
+The mechanism, we should say plainly, is old.  Recognizing a fixed set
+of combinators and executing them natively is Turner's extended
+combinator set and SKIM's microcode
+\citep{Turner1979,ClarkeEtAl1980,StoyeClarkeNorman1984}, and a graph
+reducer with sharing is the same vintage.  What the theorem changes is
+the licence rather than the technique, and it yields exactly one rule: a
+jet may never quote on behalf of a running term, because the language
+guarantees to its users that nothing can.
+
+Two properties of such a runtime bear on the claims made here, and both
+cut against convenience.  Jets change contraction counts, so a jetted
+run cannot be compared with the counts of \citet{Davis2027} at all.  And
+a reducer that updates a redex in place shares work the reference
+reducer repeats, which lowers those counts even with no jets installed;
+the paper's numbers are the reference's substitution semantics, and an
+implementation that wishes to reproduce them must decline to share.
+Values are unaffected either way.  A runtime is being built on these
+terms and is the subject of a separate paper; nothing in this one
+depends on it.
+
+\section{Limitations}\label{sec:limits}
+
+SKIjack has evaluation of encoded terms, including terms built at
+run time: that is what an interpreter applied to a datum is, and the
+tower of \citet{Davis2027} is nothing else.  What it lacks is
+reification of a live value.  The missing operation is \emph{reify}, not
+\emph{eval}, and the distinction is the subject of this paper rather
+than a quibble about names.
+
+The language is not self-hosting.  While self-compilation would need a 
+parser mapping text to the internal representation of SKIjack terms, the
+real reason lies in the interpreter tower.  The Futamura projections 
+inside the calculus mean that an expander that is a term could be run 
+under an interpreter and specialized, and the tower would gain a level 
+with new content rather than another copy of the same interpreter.  This
+is not prohibitive but has not been undertaken.  The operational
+overhead does not seem to merit the additional effort or reveal new
+premises for $SKI$ as a tool.
+
+The type discipline stops at the stage described in
+\S\ref{sec:boundary}.  The standard subject of \S\ref{sec:language} is
+specified but unbuilt, so library names are inlined and level-1 programs
+do not share a quoted library.  Qualified names parse and do not yet
+resolve.
+
+While the language is Turing-complete, certain functions are 
+transferred  to the virtual machine host, such as scaffolding the 
+initial evaluation, preserving the state and memory arena, and 
+providing the supercombinator jet acceleration table.
+
+\section{Conclusion}
+
+The line of research leading to the original SKI Machine focused on the 
+development of combinatory logic as a foundation for implementing 
+functional programming languages efficiently.  These techniques formed 
+the basis for the first lazy functional language implementations, 
+providing a practical, variable-free model for executing functional 
+programs without the overhead of variable management.  The exploration
+of supercombinator techniques by SKIjack and its virtual machine Avon
+may spur further reflection and development in the field of efficient 
+functional language implementation, as well as reconceptualization of
+the role of combinatory logic in the foundations of computer science.
 
 \bibliographystyle{plainnat}
 \bibliography{mss}
 
 \appendix
 
+\section{Language description}\label{sec:language-description}
+
+TODO
+
 \section{The artifact}\label{app:artifact}
 
-\status{The parts below the rule of Table~\ref{tab:whnfF}, in full, and
-\texttt{whnfF} itself at 618 atoms and 2{,}109 characters.  The first
-paper prints the same term in its Appendix B; if space is short, cite it
-there and print only the parts this paper names, since the claim being
-supported is byte-identity and a reader who wants to check it needs the
-term from one of the two.}
+The claim of \S\ref{sec:impl} is byte-identity, and a reader who wants
+to check it needs the term.  Here it is: the 618 atoms
+\texttt{whnfF} compiles to, which are the same 618 that Appendix~B of
+\citet{Davis2027} prints, printed here in the same notation --- left
+associative, with parentheses only where an application is the right
+operand of another.
+
+\begin{lstlisting}[basicstyle=\ttfamily\scriptsize,
+                   caption={The \texttt{whnfF} function fully expanded.},
+                   breaklines=true,
+                   frame=none,
+                   literate=]
+S (K (S I I)) (S (S (K S) K) (K (S I I))) (S (K (S (S (K S) (S (K K) (S I (K K)))))) (S (K
+K) (S (K (S (S (K S) (S (K K) (S (S (S (S (S (S (K (S I I)) (S (S (K S) K) (K (S I I))) (S
+(K (S (S (K S) (S (S (K S) (S (S (K S) (S (S (K S) K) (K (S (K (S (K K))) (S (K (S (K K)))
+(S (K (S I)) K)))))) (K (S (K K) (S (K (S (K K))) (S (K (S I)) K)))))) (K (S (K K) (S (K K)
+(S (K (S I)) K)))))))) (S (K K) (S (S (K S) (S (K K) (S (K S) (S (K (S (K S))) (S (K K))))))
+(K (S (K K) (S (K (S (S (K (S (K K))) (S (S (K S) (S (K K) (S (K S) (S (K (S I)) K)))) (K
+K))))) K))))))) (K K)) (K (S (S I (K K)) (K (S (K (S (S I (K K)))) (S (K K) (S (K (S (K (S
+(S I (K K)))))) (S (K (S (K K))) (S (K (S (K (S (K (S (K (S (K K) (S (K (S I)) K))))))))) (S
+(K (S (K (S (K (S (K (S I I)) (S (S (K S) K) (K (S I I))) (S (K (S (S (K S) (S (K (S I))
+K)))) (S (K (S (K K))) (S (S (K S) (S (K K) (S (K S) K))) (K (S (K (S (K K))) (S (K (S (K
+K))) (S (K (S (K K))) (S (S (K S) (S (K K) (S (K S) (S (K (S I)) K)))) (K K)))))))))))))))
+(S (S (K S) (S (K K) (S (K S) (S (K (S (K (S (K (S (K K))) (S (K (S (K K))) (S (K (S (K K)))
+(S (S (K S) (S (K K) (S (K S) (S (K (S I)) K)))) (K K)))))))) (S (K (S (K K))) (S (K (S (K
+K))) (S (K (S (K K))) (S (S (K S) (S (K K) (S (K S) (S (K (S I)) K)))) (K K))))))))) (K (S
+(K (S (K K))) (S (K (S (K K))) (S (K (S (K K))) (S (S (K S) (S (K K) (S (K S) (S (K (S I))
+K)))) (K K))))))))))))))))) (K (S (S I (K K)) (K (S (K (S (S I (K K)))) (S (K K) (S (K K) (S
+(K (S (K (S (K K) (S (K (S I)) K))))) (S (K (S I I)) (S (S (K S) K) (K (S I I))) (S (K (S (S
+(K S) (S (K (S I)) K)))) (S (K (S (K K))) (S (S (K S) (S (K K) (S (K S) K))) (K (S (K (S (K
+K))) (S (K (S (K K))) (S (K (S (K K))) (S (S (K S) (S (K K) (S (K S) (S (K (S I)) K)))) (K
+K)))))))))))))))))) (K (S (S I (K K)) (K (S (K (S (K (S (K K) (S (K (S I)) K))))) (S (K (S I
+I)) (S (S (K S) K) (K (S I I))) (S (K (S (S (K S) (S (K (S I)) K)))) (S (K (S (K K))) (S (S
+(K S) (S (K K) (S (K S) K))) (K (S (K (S (K K))) (S (K (S (K K))) (S (K (S (K K))) (S (S (K
+S) (S (K K) (S (K S) (S (K (S I)) K)))) (K K))))))))))))))) (S (K K) (S (K (S I)) K)))))))
+K)))
+\end{lstlisting}
+
+The intermediate parts are not printed, because they do not need to be.
+The lower block of Table~\ref{tab:whnfF} gives each of them in terms of
+the parts above it, and the upper block gives those in full, so every
+named subterm of this object can be reconstructed mechanically from that
+one table.  That is $\mathit{lower}$, and it is the law tested on each
+of them.
 
 
 \end{document}
