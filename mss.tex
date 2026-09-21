@@ -74,13 +74,12 @@
 \DeclareMathOperator{\Drop}{Drop}
 
 %% JFP style: titles, headings and captions are sentence case.
-\title[SKIjack]{A self-interpreter for $SKI$
-  written in $SKI$: Extensional semantics for new symbols}
+\title[SKIjack]{SKIjack:\\A low-level native language for the $SKI$ calculus}
 
 \author{N. E. Davis}
 \orcid{0000-0002-1131-8319}
 \affiliation{%
-  \institution{Independent Researcher}
+  \institution{ZeroAttest}
   \city{Champaign, Illinois}
   \country{United States of America}
   \authoremail{neal.davis@protonmail.com}
@@ -91,24 +90,25 @@
 \begin{document}
 
 \begin{abstract}
-Over a homoiconic calculus the designer chooses where quotation happens.
-Over a calculus without self-quotation the choice is not available: no
-combinator can take another apart, so reification is metalevel by
-theorem, and a language's staging boundary is fixed before its syntax
-is.  We present SKIjack, a language for writing metacircular
+We present SKIjack, a language for writing metacircular
 interpreters over the $SKI$ calculus, whose feature set is designed off
 an existing artifact rather than designed: the 618-atom 
 self-interpreter of \citet{Davis2027}, decomposed into its fuel loop, 
 its dispatch, its spine walker and its atoms, with each part promoted 
-to a surface construct.  Declaring an object language generates that 
+to a surface construct.  
+Over a homoiconic calculus the designer chooses where quotation happens.
+Over a calculus without self-quotation this choice is unavailable: no
+combinator can take another apart, so reification is metalevel by
+theorem and a language's staging boundary is fixed.
+Declaring an object language generates that 
 furniture, so authoring the semantics of a new symbol---the core 
-operation performed by hand in \citet{Davis2027}---becomes a two-line 
-edit.  Quotation is available at compile time only, and at the
+operation performed by hand in the previous paper---becomes merely a 
+two-line  edit.  Quotation is available at compile time only, and at the
 positions where a function would be asked to behave as data the checker
-statically refuses every occupant it can prove to be one.  A scry namespace is a language
-feature: a path is written as a literal of a declared path type and
-compared by structural equality on its encoding, and a blocked run is
-replayed under a namespace that only ever grows.
+statically refuses every occupant it can prove to be one.  A bound 
+namespace is a language feature: a path is written as a literal of a 
+declared path type and compared by structural equality on its encoding, 
+and a blocked run is replayed under a namespace that only ever grows.
 \end{abstract}
 
 \maketitle
@@ -116,21 +116,25 @@ replayed under a namespace that only ever grows.
 
 \section{Introduction}\label{sec:intro}
 
-Over a homoiconic calculus (Lisp, Nock) the metacircular tradition gets 
+Over a homoiconic calculus (Lisp, Nock) the metacircular tradition
+\citep{McCarthy1960,Nock4K} gets 
 quotation for free and the language designer chooses where evaluation 
-stages live. Over a non-homoiconic calculus that choice is taken away: 
-Proposition 3.1 says no closed term quotes \emph{every} live term, so 
-the compile-time/runtime line is fixed before the language is designed;
+stages live. Over a non-homoiconic calculus no such choice is possible: 
+Proposition 3.1 of \citet{Davis2027}, which follows from Theorem 3.2
+of \citet{JayGivenWilson2011}, demonstrates that no closed term quotes
+\emph{every} live term, so the compile-time/runtime 
+line is fixed prior to the language's design;
 the two operations the calculus cannot do for itself, quote and 
-recognize, go to the compiler and the virtual machine respectively.  
-\citet{Davis2027} presented a metacircular evaluator for $SKI$ which is 
-written and evaluated in the same combinator system.  This capability 
+recognize, must go to the compiler and the virtual machine 
+respectively.  \citet{Davis2027} presented a metacircular evaluator for 
+$SKI$ which is written and evaluated in the same combinator system.  
+This capacity 
 immediately suggests the construction of a battery of computational 
 conveniences and abstractions within the same system; to wit, a 
 language.  We present SKIjack (pronounced ``skyjack''), a 
 closed-supercombinator macro-like language built in and targeting the 
 non-homoiconic $SKI$ calculus as its  instruction set architecture.  
-Every named thing compiles to a closed term and every name is resolved 
+Every named entity compiles to a closed term and every name is resolved 
 before anything runs, so the language has no runtime environment to 
 address: bracket abstraction has already closed what a subject-oriented 
 calculus would have to carry.  SKIjack is evaluable on any $SKI$ 
@@ -270,7 +274,7 @@ results from Corrado B\"ohm's work:
   $\lambda$-calculus having a normal form.  
 \end{enumerate}
 
-Bracket abstraction permits the procedural compilation of a high-level 
+Bracket abstraction permits the procedural compilation of a low-level 
 applicative language to combinators \citep{Turner1979}; there is a 
 related abstraction algorithm \citep{Turner1979b}.  That technique was 
 realized in hardware as the ``$SKI$ Machine'' (SKIM), a 
@@ -797,24 +801,39 @@ type, and the fuel loop, whose shape is read off the outcome and result types. T
 which for \texttt{maybe} is \texttt{Nothing}.
 
 The original paper's observability pair here reduces to two interpreters
-over a five-constructor object language, differing at the single 
-equation that handles the new leaf, as two lines:
+over a five-constructor object language, differing at the single
+equation that handles the new leaf.  The whole program is seven lines:
 
-\begin{quote}
-\ttfamily\small
-wf5Abs := \{ stepErr acc = Errd \}\\
-wf5Omg := \{ stepErr acc = omega \}
-\end{quote}
+\begin{lstlisting}[label=lst:t3,float=tb,
+                   caption={Two interpreters over a five-constructor
+                   object language, differing in one equation.}]
+term5   === S | K | I | App term5 term5 | Err
+outcome === Stepped term5 | Done | Errd
+result  === RVal term5 | RErr | RTime
+
+omega = S I I (S I I)
+
+wf5Abs := { stepErr acc = Errd }
+wf5Omg := { stepErr acc = omega }
+\end{lstlisting}
 
 \noindent The first absorbs the new symbol into an error outcome; the
-second diverges on it.  They compile to 768 and 771 atoms, again 
-matching the artifacts of \citet{Davis2027} atom for atom and they
-reproduce that paper's observability table.  In SKIjack, everything 
-else about them, some seven hundred atoms of walker, rebuilder, step 
-equations and loop, is generated from the three type declarations above 
-them.  (Incidentally, this shows that for $SKI$ constructions, the 
-simple SKIjack compiler is on par with hand construction of $SKI$ 
-expressions.)
+second diverges on it.  They compile to 768 and 771 atoms, again
+matching the artifacts of \citet{Davis2027} atom for atom, and they
+reproduce that paper's observability table.
+
+The edit is as surgical as the claim requires, and the compiler makes
+that checkable rather than rhetorical.  The two cores differ in one
+equation, and the compiled terms differ by exactly what that equation
+costs: \texttt{stepErr} is 4 atoms in the first core and 7 in the
+second, and 768 and 771 differ by precisely those 3.  The difference
+propagates outward unchanged --- \texttt{step} is 684 against 687 and
+\texttt{loop1} 736 against 739 --- so nothing else in either
+interpreter moved.  All the rest, some seven hundred atoms of spine
+walker, rebuilder, four default step equations and fuel loop, is
+generated from the three type declarations above them, and generated
+identically for both.  For $SKI$ constructions of this shape the
+compiler is on par with hand construction, at no cost in term size.
 
 \section{The namespace}\label{sec:namespace}
 
@@ -858,6 +877,78 @@ nothing.  Furthermore, fuel is not neutral across a resumption.  A
 replayed run spends its budget again from the beginning, so the fuel a
 program needs is a function of how many times it blocked, and a budget
 that sufficed on the first attempt may not suffice on the third.
+
+\subsection{A character table}\label{sec:chars}
+
+The smallest useful namespace that is not a toy is a character table:
+the stage of a parser that maps a source character to the term it
+denotes.  It is worth separating because it is the one part of parsing
+that is a lookup rather than a decomposition, and so the one part that
+a calculus which cannot take terms apart can still do.  Declaring the
+segment type and the facts is the whole of it; the interpreter is the
+\texttt{wfN} of \S\ref{sec:interpreters}, unchanged and uncompiled
+again.
+
+\begin{lstlisting}[label=lst:chars,float=tb,
+                   caption={A character table as a namespace, and four
+                   programs that read from it.}]
+seg === Src | Ess | Kay | Eye
+
+chars := ns{/src/ess => <S>, /src/kay => <K>, /src/eye => <I>}
+
+one   := wfN chars |- <?^/src/ess>@10
+apply := wfN chars |- <?^/src/eye ?^/src/ess>@20
+disc  := wfN chars |- <?^/src/kay ?^/src/ess ?^/src/eye>@40
+held  := wfN chars |- <?^/src/ess ?^/src/kay ?^/src/eye>@50
+\end{lstlisting}
+
+\noindent The three-fact literal is 8{,}707 atoms.  What the four
+programs return is given in Table~\ref{tab:chars}, and two of the rows
+are the point.
+
+\begin{table}[tb]
+\caption{Reading from the character table of
+Listing~\ref{lst:chars}.}\label{tab:chars}
+\centering\small
+\begin{tabular}{@{}lrlr@{}}
+\toprule
+program & atoms & outcome & contractions \\
+\midrule
+\texttt{one}   & 12{,}580 & \texttt{RValN S} & 16{,}150 \\
+\texttt{apply} & 15{,}374 & \texttt{RValN S} & 62{,}199 \\
+\texttt{disc}  & 18{,}203 & \texttt{RValN S} & 47{,}257 \\
+\texttt{held}  & 18{,}283 & \texttt{RValN S (Scry \ldots) (Scry \ldots)} & 16{,}739 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+In \texttt{disc} three lookups are written and two are performed:
+\texttt{K\,S\,I} keeps its first argument, so \texttt{/src/eye} is
+discarded by object-level reduction and never read.  In \texttt{held}
+three are written and one is performed: \texttt{S} with two arguments
+is already in weak head normal form, so the interpreter stops with the
+two unread lookups still sitting in the returned term as
+\texttt{Scry} nodes.  A scry is thus not an effect that happens when
+the program mentions it, but a redex like any other, performed only
+where the reduction order demands a value.  This is the call-by-name
+discipline of \S\ref{sec:language} reaching the namespace, and it is
+the same phenomenon as the \texttt{K\,I\,Err} row of
+\citet{Davis2027}: a symbol present but discarded costs nothing.
+
+The cost of a hit is linear in where the fact sits, because the literal
+expands to a chain of \texttt{EQ5} comparisons tried in order.  Reading
+the first, second and third fact of \texttt{chars} takes 16{,}150,
+30{,}469 and 45{,}710 contractions, about fifteen thousand per probe;
+the small variation between probes is the differing size of the segment
+constructors' own encodings.  A namespace literal is therefore an
+association list and should be read as one: it is the declaration that
+is cheap, not the lookup.
+
+This is a stage of a parser and not a parser.  What the table supplies
+is resolution, from a name to the term it denotes.  Tokenization is the
+other half, and it needs the source to be a datum the program can case
+on rather than a path it can only match; that is the standard subject
+of \S\ref{sec:language}, and it is unbuilt.
 
 \section{Boundary soundness}\label{sec:boundary}
 
@@ -927,8 +1018,8 @@ it does so behaviourally, applying the term to fresh markers and
 observing which one comes back rather than inspecting combinator syntax.
 The last is a discipline rather than a property of the dictionary: the
 dictionary's own tests are over hashes, tie-breaks and $\mathit{lower}
-\circ \mathit{lift}$, and the probing lives where values are read.  The corpus is 17 programs written in both
-lexicons, and the suite is 705 tests.
+\circ \mathit{lift}$, and the probing lives where values are read.  The corpus is 18 programs written in both
+lexicons, and the suite is 736 tests.
 
 The evaluation is a single claim, made by equality of terms.  Six
 programs compile term-identically to artifacts \citet{Davis2027} built 
@@ -1019,7 +1110,8 @@ be a smaller undertaking than it sounds --- the expander's input is a
 syntax tree, which is Scott-encodable like any other datum, so the
 expander is separable from the parser and text handling could stay where
 it is.  What is forgone by declining is not a demonstration but the
-Futamura projections inside the calculus: an expander that is a term
+Futamura projections \citep{Futamura1971,JonesGomardSestoft1993} inside
+the calculus: an expander that is a term
 could be run under an interpreter and specialized, and the tower would
 gain a level with new content rather than another copy of the same
 interpreter.  We record the cost and leave it.  Nothing else here
@@ -1049,7 +1141,8 @@ programs without the overhead of variable management.  The exploration
 of supercombinator techniques by SKIjack and its virtual machine(s)
 may spur further reflection and development in the field of efficient 
 functional language implementation, as well as reconceptualization of
-the role of combinatory logic in the foundations of computer science.
+the role of combinatory logic in the foundations of computer science
+and verifiable computing.
 
 \section*{Data availability statement}
 
