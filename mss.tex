@@ -87,20 +87,17 @@
 \keywords{combinatory logic, SKI calculus, metacircular interpreters,
   bracket abstraction, supercombinators}
 
-% CHECKHERE: ACM CCS 2012 classification is new; verify the concept_ids
-% against https://dl.acm.org/ccs before submission.
 \begin{CCSXML}
 <ccs2012>
 <concept>
-<concept_id>10011007.10011006.10011008</concept_id>
-<concept_desc>Software and its engineering~General programming languages</concept_desc>
+<concept_id>10011007.10011006.10011008.10011009.10011012</concept_id>
+<concept_desc>Software and its engineering~Functional languages</concept_desc>
 <concept_significance>500</concept_significance>
 </concept>
 <concept>
 <concept_id>10011007.10011006.10011041</concept_id>
 <concept_desc>Software and its engineering~Compilers</concept_desc>
 <concept_significance>300</concept_significance>
-</concept>
 <concept>
 <concept_id>10003752.10010124.10010131</concept_id>
 <concept_desc>Theory of computation~Program semantics</concept_desc>
@@ -129,27 +126,55 @@
 % Programming's checklist requires the abstract to state, in order: 
 % Context, Inquiry, Approach, Knowledge, Grounding, Importance
 % (<=500 words).
+% CHECKHERE: new abstract, drafted in Programming's required order --
+% context, inquiry, approach, knowledge, grounding, importance -- as six
+% paragraphs without headings, which is how the template's own abstract
+% does it. Expected action: rework the voice where it isn't yours, keep
+% the order, keep it under 500 words, then delete this comment.
 \begin{abstract}
-The design of an interpreter for a homoiconic calculus permits the free
-selection of a staging boundary for quotation.  Over a calculus without self-quotation, this choice is unavailable: no combinator can take 
-another apart, so reification is metalevel by theorem and a language's 
-staging boundary is fixed.
-We present SKIjack, a language for writing interpreted code over the 
-$SKI$ calculus to be evaluated in a metacircular fashion, whose feature 
-set is derived from an existing artifact rather than designed: the 
-618-atom self-interpreter of \citet{Davis2027}, decomposed into its 
-fuel loop, its dispatch, its spine walker and its atoms, with each part 
-promoted to a surface construct.  
-Declaring an object language generates that 
-furniture, so authoring the semantics of a new symbol---the core 
-operation performed by hand in the previous paper---becomes merely a 
-two-line edit.  Quotation is available at compile time only, and at the
-positions where a function would be asked to behave as data the checker
-statically refuses every occupant it can prove to be one.  A bound 
-namespace is a language feature: a path is written as a literal of a 
-declared path type and compared by structural equality on its encoding, 
-and a blocked run is replayed under a namespace that only ever grows.
-This design ensures that the staging boundary is explicit and that the language's semantics are fully determined by its surface constructs.
+Over a homoiconic calculus the designer chooses where quotation
+happens, and the metacircular tradition gets it for free.  Over the
+$SKI$ combinator calculus no such choice exists: no closed term quotes
+every live term, so reification is metalevel by theorem and a
+language's staging boundary is fixed before its syntax is.
+\citet{Davis2027} built a 618-atom self-interpreter for $SKI$ in $SKI$
+and authored the semantics of new symbols at one site of it, by hand.
+
+We ask what language that discipline permits: whether the hand
+construction can become declarations without changing the terms it
+produces, and what the theorem forces on the language's shape rather
+than leaves to taste.
+
+SKIjack's feature set is read off the artifact rather than designed.
+Its fuel loop, dispatch, spine walker and atoms each become a surface
+construct, and declaring an object language generates an interpreter's
+furniture.  A program runs at one of two levels; at the second, a
+quotation runs under a named interpreter with an explicit fuel budget,
+so its steps, divergence and errors are observable.  A namespace is a
+core parameter: paths are literals of a declared type, compared
+structurally on their encodings, and a blocked run is replayed under a
+namespace that only grows.  Quotation is available at compile time
+only, and a checker refuses every occupant of a data position it can
+prove to be a function.
+
+Six programs compile to the hand-built artifacts atom for atom.  Two
+interpreters differing in one equation differ by exactly the three
+atoms that equation costs.  A scry is a redex rather than an effect: a
+lookup discarded by $K$ is never performed, and one left unforced under
+an unsaturated $S$ comes back unread.  Lookup cost is linear in a fact's
+position in the literal.  The same term is quotable as a name and
+refused as a parameter, which locates the line between eval and reify
+at when a term is known rather than what it is.
+
+Every claim is an exact term identity or a contraction count on a
+reference reducer, reproducible from the artifact's corpus and pinned by
+its tests; values are read behaviourally, never by inspecting
+combinator syntax.  No performance claim is made.
+
+Over a non-homoiconic instruction set the staging line is a theorem
+rather than a design decision, and a language can make it visible in
+its syntax.  Interpreters and namespaces are then ordinary terms a
+program names, which is the ground a native runtime will stand on.
 \end{abstract}
 
 
@@ -695,18 +720,8 @@ forming a single node in the graph and shared by every use.  In
 contrast, a macro has no runtime existence but is expanded into each 
 use site, so it costs nothing to reach and is duplicated per use.  
 
-% CHECKHERE: new worked example (corpus program sec2-c; sizes pinned in
-% tests/test_expand.py, lift behaviour in tests/test_dictionary.py).
 Listing~\ref{lst:flip} is the same combinator both ways.
-\begin{lstlisting}[label=lst:flip,float=tb,
-                   caption={One combinator as a supercombinator and as a
-                   macro, and a use of each.}]
-C f x y = f y x            -- an equation: one closed term
-flip f x y :=* f y x       -- a macro: rewritten at each use
-flipK1 x y = C K x y       -- through the equation
-flipK2 x y = flip K x y    -- through the macro
-\end{lstlisting}
-\noindent \texttt{flipK1} compiles to 11 atoms and is literally
+\texttt{flipK1} compiles to 11 atoms and is literally
 \texttt{C} applied to \texttt{K}: the ten-atom supercombinator sits
 intact inside it, and lifting the term against a dictionary that names
 \texttt{C} recovers \texttt{C K}.  \texttt{flipK2} compiles to 5,
@@ -722,6 +737,15 @@ supercombinators as the alternative to compiling into a fixed
 combinator set, whose expansions blow up in size; here the fixed set is 
 the non-negotiable instruction set, so each lifted definition is 
 abstracted into $\{S,K,I\}$ after lifting.)
+
+\begin{lstlisting}[label=lst:flip,float=h!,
+                   caption={One combinator as a supercombinator and as a
+                   macro, and a use of each.}]
+C f x y = f y x            -- an equation: one closed term
+flip f x y :=* f y x       -- a macro: rewritten at each use
+flipK1 x y = C K x y       -- through the equation
+flipK2 x y = flip K x y    -- through the macro
+\end{lstlisting}
 
 The structural consequence is more important than the cost.  Compilation
 leaves the supercombinators intact and nested inside one another:  in 
@@ -1236,7 +1260,6 @@ The language'stype discipline stops at the stage described in
 specified but unbuilt at time of submission, so library names are inlined and level-1 programs
 do not share a quoted library.  Qualified names parse and do not yet
 resolve.
-% CHECKHERE: the capturing macro form is parsed and refused by the expander.
 The capturing macro form \texttt{:=!} parses and is refused by the
 expander; only the hygienic form is implemented.
 
@@ -1389,30 +1412,7 @@ Appendix~B of \citet{Davis2027} (Listing~\ref{lst:whnfFSKI}).
                    breaklines=true,
                    frame=none,
                    literate=]
-S (K (S I I)) (S (S (K S) K) (K (S I I))) (S (K (S (S (K S) (S (K K) (S I (K K)))))) (S (K
-K) (S (K (S (S (K S) (S (K K) (S (S (S (S (S (S (K (S I I)) (S (S (K S) K) (K (S I I))) (S
-(K (S (S (K S) (S (S (K S) (S (S (K S) (S (S (K S) K) (K (S (K (S (K K))) (S (K (S (K K)))
-(S (K (S I)) K)))))) (K (S (K K) (S (K (S (K K))) (S (K (S I)) K)))))) (K (S (K K) (S (K K)
-(S (K (S I)) K)))))))) (S (K K) (S (S (K S) (S (K K) (S (K S) (S (K (S (K S))) (S (K K))))))
-(K (S (K K) (S (K (S (S (K (S (K K))) (S (S (K S) (S (K K) (S (K S) (S (K (S I)) K)))) (K
-K))))) K))))))) (K K)) (K (S (S I (K K)) (K (S (K (S (S I (K K)))) (S (K K) (S (K (S (K (S
-(S I (K K)))))) (S (K (S (K K))) (S (K (S (K (S (K (S (K (S (K K) (S (K (S I)) K))))))))) (S
-(K (S (K (S (K (S (K (S I I)) (S (S (K S) K) (K (S I I))) (S (K (S (S (K S) (S (K (S I))
-K)))) (S (K (S (K K))) (S (S (K S) (S (K K) (S (K S) K))) (K (S (K (S (K K))) (S (K (S (K
-K))) (S (K (S (K K))) (S (S (K S) (S (K K) (S (K S) (S (K (S I)) K)))) (K K)))))))))))))))
-(S (S (K S) (S (K K) (S (K S) (S (K (S (K (S (K (S (K K))) (S (K (S (K K))) (S (K (S (K K)))
-(S (S (K S) (S (K K) (S (K S) (S (K (S I)) K)))) (K K)))))))) (S (K (S (K K))) (S (K (S (K
-K))) (S (K (S (K K))) (S (S (K S) (S (K K) (S (K S) (S (K (S I)) K)))) (K K))))))))) (K (S
-(K (S (K K))) (S (K (S (K K))) (S (K (S (K K))) (S (S (K S) (S (K K) (S (K S) (S (K (S I))
-K)))) (K K))))))))))))))))) (K (S (S I (K K)) (K (S (K (S (S I (K K)))) (S (K K) (S (K K) (S
-(K (S (K (S (K K) (S (K (S I)) K))))) (S (K (S I I)) (S (S (K S) K) (K (S I I))) (S (K (S (S
-(K S) (S (K (S I)) K)))) (S (K (S (K K))) (S (S (K S) (S (K K) (S (K S) K))) (K (S (K (S (K
-K))) (S (K (S (K K))) (S (K (S (K K))) (S (S (K S) (S (K K) (S (K S) (S (K (S I)) K)))) (K
-K)))))))))))))))))) (K (S (S I (K K)) (K (S (K (S (K (S (K K) (S (K (S I)) K))))) (S (K (S I
-I)) (S (S (K S) K) (K (S I I))) (S (K (S (S (K S) (S (K (S I)) K)))) (S (K (S (K K))) (S (S
-(K S) (S (K K) (S (K S) K))) (K (S (K (S (K K))) (S (K (S (K K))) (S (K (S (K K))) (S (S (K
-S) (S (K K) (S (K S) (S (K (S I)) K)))) (K K))))))))))))))) (S (K K) (S (K (S I)) K)))))))
-K)))
+S (K (S I I)) (S (S (K S) K) (K (S I I))) (S (K (S (S (K S) (S (K K) (S I (K K)))))) (S (K K) (S (K (S (S (K S) (S (K K) (S (S (S (S (S (S (K (S I I)) (S (S (K S) K) (K (S I I))) (S (K (S (S (K S) (S (S (K S) (S (S (K S) (S (S (K S) K) (K (S (K (S (K K))) (S (K (S (K K))) (S (K (S I)) K)))))) (K (S (K K) (S (K (S (K K))) (S (K (S I)) K)))))) (K (S (K K) (S (K K) (S (K (S I)) K)))))))) (S (K K) (S (S (K S) (S (K K) (S (K S) (S (K (S (K S))) (S (K K)))))) (K (S (K K) (S (K (S (S (K (S (K K))) (S (S (K S) (S (K K) (S (K S) (S (K (S I)) K)))) (K K))))) K))))))) (K K)) (K (S (S I (K K)) (K (S (K (S (S I (K K)))) (S (K K) (S (K (S (K (S (S I (K K)))))) (S (K (S (K K))) (S (K (S (K (S (K (S (K (S (K K) (S (K (S I)) K))))))))) (S (K (S (K (S (K (S (K (S I I)) (S (S (K S) K) (K (S I I))) (S (K (S (S (K S) (S (K (S I)) K)))) (S (K (S (K K))) (S (S (K S) (S (K K) (S (K S) K))) (K (S (K (S (K K))) (S (K (S (K K))) (S (K (S (K K))) (S (S (K S) (S (K K) (S (K S) (S (K (S I)) K)))) (K K))))))))))))))) (S (S (K S) (S (K K) (S (K S) (S (K (S (K (S (K (S (K K))) (S (K (S (K K))) (S (K (S (K K))) (S (S (K S) (S (K K) (S (K S) (S (K (S I)) K)))) (K K)))))))) (S (K (S (K K))) (S (K (S (K K))) (S (K (S (K K))) (S (S (K S) (S (K K) (S (K S) (S (K (S I)) K)))) (K K))))))))) (K (S (K (S (K K))) (S (K (S (K K))) (S (K (S (K K))) (S (S (K S) (S (K K) (S (K S) (S (K (S I)) K)))) (K K))))))))))))))))) (K (S (S I (K K)) (K (S (K (S (S I (K K)))) (S (K K) (S (K K) (S (K (S (K (S (K K) (S (K (S I)) K))))) (S (K (S I I)) (S (S (K S) K) (K (S I I))) (S (K (S (S (K S) (S (K (S I)) K)))) (S (K (S (K K))) (S (S (K S) (S (K K) (S (K S) K))) (K (S (K (S (K K))) (S (K (S (K K))) (S (K (S (K K))) (S (S (K S) (S (K K) (S (K S) (S (K (S I)) K)))) (K K)))))))))))))))))) (K (S (S I (K K)) (K (S (K (S (K (S (K K) (S (K (S I)) K))))) (S (K (S I I)) (S (S (K S) K) (K (S I I))) (S (K (S (S (K S) (S (K (S I)) K)))) (S (K (S (K K))) (S (S (K S) (S (K K) (S (K S) K))) (K (S (K (S (K K))) (S (K (S (K K))) (S (K (S (K K))) (S (S (K S) (S (K K) (S (K S) (S (K (S I)) K)))) (K K))))))))))))))) (S (K K) (S (K (S I)) K))))))) K)))
 \end{lstlisting}
 
 \end{document}
