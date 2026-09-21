@@ -503,7 +503,7 @@ affordances to make the language expressive and composable.
 
 A language description of SKIjack is provided in Appendix~\ref{sec:language-description}.
 
-\subsection{Design principles}
+\subsection{Design principles}\label{sec:design-principles}
 
 Since quotation of live terms is not supported, the language relies on 
 the macro-like composition of its object terms rather than runtime 
@@ -589,7 +589,7 @@ that looks up \texttt{/nat/two} instead gives \texttt{RValN I} in
 As can be seen, SKIjack and its \texttt{whnfF} interpreter are far from
 concise, but they are deterministic.
 
-\subsection{Representation ABI}
+\subsection{Representation ABI}\label{sec:representation-abi}
 
 A handful of representation choices sit between the compiler and
 everything written in the language.  We call this the representation 
@@ -622,7 +622,7 @@ Scott rather than Church variant. Booleans are \texttt{K} for yes and
 continuations.  Numerals are Scott numerals and serve as fuel; there is 
 no native integer, and arithmetic is unary.
 
-\subsection{Kernel forms}
+\subsection{Kernel forms}\label{sec:kernel-forms}
 
 The kernel contains about a dozen forms and is intended to remain fixed.
 Each form has exactly one expansion, given by a fold over the
@@ -641,7 +641,7 @@ the same source gives the same closed term, atom for atom,
 deterministically and context-free.  The surface grows in macros and in 
 the library rather than in the compiler.
 
-\subsection{Supercombinators vs.\ macros}
+\subsection{Supercombinators vs.\ macros}\label{sec:supercombinators-vs-macros}
 
 A supercombinator and a macro can look alike in source code but are not
 equivalent.  An equation is lambda-lifted over its binders and over the 
@@ -670,7 +670,7 @@ Macros are hygienic by default, since a capture is invisible in source
 and shows up only as a body silently reading the wrong binding; a 
 marked capturing form is reserved for the cases that want it.
 
-\subsection{The standard subject}
+\subsection{The standard subject}\label{sec:standard-subject}
 
 A language of this shape wants a library, and the library wants to
 arrive as data rather than as a compiler built-in.  We call this a
@@ -692,7 +692,7 @@ subject to find its own names.)
 % are therefore upper bounds in a specific and uninteresting way: a shared
 % subject would lower them without changing a single reduction.
 
-\subsection{The quotation line}
+\subsection{The quotation line}\label{sec:quotation-line}
 
 So far, SKIjack is a fairly ordinary supercombinator language.  The
 line that separates it from SASL or SKIM is where a term may be turned
@@ -752,14 +752,13 @@ the base interpreter at 340 host contractions for a single object step.
 
 \section{Interpreters as declarations}\label{sec:interpreters}
 
-A central move of \citet{Davis2027} was to author the semantics of a 
-new  symbol at one site of an interpreter. It performed that move by 
-hand, in  a definitional layer with no surface language above it. With 
-SKIjack it becomes a declaration. Before extending the interpreter, 
-though, we reproduce it: Listing~\ref{lst:whnfF} defines \texttt{whnfF} 
-in SKIjack and it compiles atom for atom to the  term printed in 
-Appendix~B of \citet{Davis2027}; this compiler did not exist when that 
-term was built, arriving at the same 618 atoms.
+The central move of \citet{Davis2027} was to author the semantics of a 
+new symbol at one site of an interpreter. It performed that move by 
+hand, in a definitional layer with no surface language above it. With 
+SKIjack, this becomes simply a declaration. Before extending the 
+interpreter, though, we reproduce it: Listing~\ref{lst:whnfF} defines 
+\texttt{whnfF} in SKIjack and it compiles atom for atom to the term 
+printed in Appendix~B of \citet{Davis2027}.
 
 \begin{lstlisting}[float=htb,
                    label=lst:whnfF,
@@ -1133,12 +1132,26 @@ providing the supercombinator jet acceleration table.
 
 \section{Conclusion}
 
-The line of research leading to the original SKI Machine focused on the 
-development of combinatory logic as a foundation for implementing 
-functional programming languages efficiently.  These techniques formed 
-the basis for the first lazy functional language implementations, 
-providing a practical, variable-free model for executing functional 
-programs without the overhead of variable management.  The exploration
+SKIjack is a language whose feature set was read off an existing 
+artifact rather than designed in advance, like the assembly language of 
+old.  Three consequences follow from that discipline.  The declaration
+of an object language generates the furniture an interpreter over it 
+requires, so authoring the semantics of a new symbol is an edit to a 
+single equation: the two interpreters of \S\ref{sec:interpreters} differ in 
+one line and in three atoms. The generation costs nothing over manual 
+construction; six programs compile to the artifacts of
+\citet{Davis2027} atom for atom.
+Finally, a namespace is an ordinary core parameter rather than a 
+primitive, which is what makes its cost legible: a literal is an 
+association list, and a hit is linear in where the fact sits.
+
+This is not, of course, performant!  The reference host is an oracle; 
+what a runtime would do with these terms is \S\ref{sec:runtime} 
+and, in earnest, other work. The standard subject of
+\S\ref{sec:standard-subject} is specified and unbuilt, and with it the 
+tokenization half of \S\ref{sec:chars}. Self-hosting is declined deliberately at the current time, per \S\ref{sec:limits}.
+
+Rather, the exploration
 of supercombinator techniques by SKIjack and its virtual machine(s)
 may spur further reflection and development in the field of efficient 
 functional language implementation, as well as reconceptualization of
