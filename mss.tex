@@ -1,7 +1,7 @@
 %% JFP, Episciences style.  jfp-epi is a thin skin over ACM's acmart,
 %% so acmart's documentation carries over; see jfp-epi-guide.pdf.
 %% [review] for submission; [final] once accepted.
-\documentclass[english,submission]{programming}
+\documentclass[english,submission,code=tt]{programming}
 
 %% The prose is written in author-year ("as \citet{Davis2025} shows"),
 %% so we ask for that rather than JFP's numeric default.  The guide's
@@ -472,7 +472,7 @@ renames exact structural matches and nothing else.  Where several names
 share one term---\texttt{Just} and \texttt{suc} are the same eight
 atoms---the source's own name is shown.}\label{tab:whnfF}
 \centering\footnotesize
-\begin{tabular}{@{}l r >{\raggedright\arraybackslash\ttfamily}p{\dimexpr\linewidth-73pt\relax}@{}}
+\begin{tabular}{@{}l r >{\raggedright\arraybackslash\ttfamily}p{\dimexpr\linewidth-78pt\relax}@{}}
 \toprule
 \textrm{part} & \textrm{atoms} & \textrm{expansion} \\
 \midrule
@@ -710,7 +710,7 @@ flipK2 x y = flip K x y    -- through the macro
 \texttt{C} applied to \texttt{K}: the ten-atom supercombinator sits
 intact inside it, and lifting the term against a dictionary that names
 \texttt{C} recovers \texttt{C K}.  \texttt{flipK2} compiles to 5,
-\texttt{S (K (S K)) K}: the macro rewrote \texttt{flip K x y} to
+\mbox{\texttt{S (K (S K)) K}}: the macro rewrote \texttt{flip K x y} to
 \texttt{K y x} at the use site before abstraction, so nothing of
 \texttt{flip} survives to be lifted and the term names nothing.  The
 macro is cheaper by six atoms and leaves no structure behind, which is
@@ -808,7 +808,7 @@ A declaration runs at one of two levels:
 \end{itemize}
 The levels differ in what is observable.  At level 1, a program's steps
 are counted, its divergence is bounded, its errors are values, and its
-scry operation can block.  All of these are available because the
+scry operation can block.  These are available because the
 interpreter is itself an ordinary term the program may name.
 
 This is a tower in the sense of \citet{Smith1984}, with one structural
@@ -1345,7 +1345,7 @@ block and a namespace literal.
                    label=lst:grammar,
                    float=h!,
                    caption={The grammar of the SKIjack language.},
-                   basicstyle=\ttfamily\footnotesize]
+                   basicstyle=\ttfamily\scriptsize]
 decl      := type-decl | sig | equation | macro | core | def | run
 run       := NAME ':=' [expr '|-'] '<' expr '>' ('@' NUMBER | '@[]')
 type-decl := NAME '===' ctor ('|' ctor)*
