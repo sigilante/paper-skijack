@@ -77,17 +77,13 @@
 \DeclareMathOperator{\Drop}{Drop}
 
 %% JFP style: titles, headings and captions are sentence case.
-\title{SKIjack:\\A low-level native language for the $SKI$ calculus}
+\title{SKIjack:  A low-level native language for the $SKI$ calculus}
 \titlerunning{SKIjack}
 
-% CHECKHERE: author block rewritten for programming.cls (acmart's
-% \institution/\city/\country/\authoremail do not exist here).
 \author{N. E. Davis}[https://orcid.org/0000-0002-1131-8319]
 \affiliation{ZeroAttest, Champaign, Illinois, USA}
 \authorrunning{N. E. Davis}
 
-% CHECKHERE: keywords are new prose (JFP forbade them; Programming
-% requires one to five).
 \keywords{combinatory logic, SKI calculus, metacircular interpreters,
   bracket abstraction, supercombinators}
 
@@ -116,9 +112,7 @@
 \ccsdesc[300]{Software and its engineering~Compilers}
 \ccsdesc[300]{Theory of computation~Program semantics}
 
-% CHECKHERE: submission metadata the class requires. perspective is one
-% of art / sciencetheoretical / scienceempirical / engineering; area is
-% open-ended (suggested list in the template guide, section 2.2).
+
 % License defaults to cc-by.
 \paperdetails{
   perspective=art,
@@ -132,20 +126,20 @@
 
 \maketitle
 
-% CHECKHERE: abstract content unchanged, but Programming's checklist
-% requires it to state, in order: Context, Inquiry, Approach, Knowledge,
-% Grounding, Importance (<=500 words).
+% Programming's checklist requires the abstract to state, in order: 
+% Context, Inquiry, Approach, Knowledge, Grounding, Importance
+% (<=500 words).
 \begin{abstract}
+The design of an interpreter for a homoiconic calculus permits the free
+selection of a staging boundary for quotation.  Over a calculus without self-quotation, this choice is unavailable: no combinator can take 
+another apart, so reification is metalevel by theorem and a language's 
+staging boundary is fixed.
 We present SKIjack, a language for writing interpreted code over the 
 $SKI$ calculus to be evaluated in a metacircular fashion, whose feature 
 set is derived from an existing artifact rather than designed: the 
 618-atom self-interpreter of \citet{Davis2027}, decomposed into its 
 fuel loop, its dispatch, its spine walker and its atoms, with each part 
 promoted to a surface construct.  
-Over a homoiconic calculus the designer chooses where quotation happens.
-Over a calculus without self-quotation this choice is unavailable: no
-combinator can take another apart, so reification is metalevel by
-theorem and a language's staging boundary is fixed.
 Declaring an object language generates that 
 furniture, so authoring the semantics of a new symbol---the core 
 operation performed by hand in the previous paper---becomes merely a 
@@ -155,6 +149,7 @@ statically refuses every occupant it can prove to be one.  A bound
 namespace is a language feature: a path is written as a literal of a 
 declared path type and compared by structural equality on its encoding, 
 and a blocked run is replayed under a namespace that only ever grows.
+This design ensures that the staging boundary is explicit and that the language's semantics are fully determined by its surface constructs.
 \end{abstract}
 
 
@@ -626,16 +621,17 @@ program's dictionary.}\label{tab:lookup}
 \end{tabular}
 \end{table}
 
-The quoted scry expression \texttt{<?\^{}/nat/three>} costs 2{,}485 atoms because at level 1 
-every constructor application is itself encoded, and \texttt{resolve} 
+At level 1 every constructor application is itself encoded, which contributes significantly to the atom count of expressions.
+The quoted scry expression \texttt{<?\^{}/nat/three>} costs 2{,}485 
+atoms, and \texttt{resolve} 
 costs 5{,}375 because the namespace literal expands to a chain that 
 compares the incoming path against each key with \texttt{EQ5} at 240 
 atoms, once per key, over full encodings of both.  In reduced form, it 
 gives \texttt{RValN K} in 28{,}661 contractions; the sibling declaration 
 that looks up \texttt{/nat/two} instead gives \texttt{RValN I} in
 14{,}502, since the first key it tries is the one that matches.
-As can be seen, SKIjack and its \texttt{whnfF} interpreter are far from
-concise, but they are deterministic.
+SKIjack and its \texttt{whnfF} interpreter are far from
+concise, but the determinism enables reliable reasoning about program behavior and improvements in evaluation strategies.
 
 \subsection{Representation ABI}\label{sec:representation-abi}
 
@@ -698,6 +694,27 @@ emitted once as a supercombinator.  A supercombinator is a closed term
 forming a single node in the graph and shared by every use.  In 
 contrast, a macro has no runtime existence but is expanded into each 
 use site, so it costs nothing to reach and is duplicated per use.  
+
+% CHECKHERE: new worked example (corpus program sec2-c; sizes pinned in
+% tests/test_expand.py, lift behaviour in tests/test_dictionary.py).
+Listing~\ref{lst:flip} is the same combinator both ways.
+\begin{lstlisting}[label=lst:flip,float=tb,
+                   caption={One combinator as a supercombinator and as a
+                   macro, and a use of each.}]
+C f x y = f y x            -- an equation: one closed term
+flip f x y :=* f y x       -- a macro: rewritten at each use
+flipK1 x y = C K x y       -- through the equation
+flipK2 x y = flip K x y    -- through the macro
+\end{lstlisting}
+\noindent \texttt{flipK1} compiles to 11 atoms and is literally
+\texttt{C} applied to \texttt{K}: the ten-atom supercombinator sits
+intact inside it, and lifting the term against a dictionary that names
+\texttt{C} recovers \texttt{C K}.  \texttt{flipK2} compiles to 5,
+\texttt{S (K (S K)) K}: the macro rewrote \texttt{flip K x y} to
+\texttt{K y x} at the use site before abstraction, so nothing of
+\texttt{flip} survives to be lifted and the term names nothing.  The
+macro is cheaper by six atoms and leaves no structure behind, which is
+the trade.
 Small things (derived combinators, booleans, projections) tend to be 
 macros, while large things (an interpreter, equality on encoded data, 
 the standard library) prefer to be supercombinators.  (Hughes proposed 
@@ -1217,6 +1234,9 @@ The language'stype discipline stops at the stage described in
 specified but unbuilt at time of submission, so library names are inlined and level-1 programs
 do not share a quoted library.  Qualified names parse and do not yet
 resolve.
+% CHECKHERE: the capturing macro form is parsed and refused by the expander.
+The capturing macro form \texttt{:=!} parses and is refused by the
+expander; only the hygienic form is implemented.
 
 While the language is Turing-complete, certain functions are 
 transferred to the virtual machine host, such as scaffolding the 
