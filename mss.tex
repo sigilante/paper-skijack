@@ -172,8 +172,8 @@ modification of the combinator's semantics, permitting it to behave more
 like a language than a mere combinator system.  This paper presents
 such a language, SKIjack, and three contributions for $SKI$ combinator
 research.  First, object-language declarations that generate an
-interpreter's furniture --- constructors, case, spine walker,
-rebuilder, default step equations and fuel loop --- so that authoring a
+interpreter's furniture---constructors, case, spine walker,
+rebuilder, default step equations and fuel loop---so that authoring a
 semantics at one site is a declaration rather than a term construction,
 and costs nothing over the hand construction: six programs compile to
 the artifacts of \citet{Davis2027} atom for atom.  Second, a two-level
@@ -209,9 +209,9 @@ thing a checker owes an author.
 The artifact this paper compiles to was built by \citet{Davis2027}: a
 fueled normal-order interpreter for $SKI$, written in $SKI$, 618 atoms,
 with an unquoter \texttt{UQ} at 43 and structural equality on encoded
-terms at 240.  Fuel is a Scott numeral and its semantics is exact --- a
+terms at 240.  Fuel is a Scott numeral and its semantics is exact---a
 budget of $k$ permits $k$ step-attempts, the last of which must be the
-no-redex check --- so a run that performs $s$ contractions needs $s+1$.
+no-redex check---so a run that performs $s$ contractions needs $s+1$.
 That paper reports the interpreter running a one-step object reduction
 in 340 host contractions, running the unquoter's output in 91,556, and
 running \emph{itself} in 504,930; it also proves the proposition this
@@ -252,7 +252,7 @@ results from Corrado B\"ohm's work:
   take from this is directional and nothing more: structure is 
   available from outside a term and not from within it.  It does not 
   transfer to our setting term for term, and the counterexample is the 
-  one \citet{Davis2027} uses to motivate Proposition 3.1 --- $S\,K\,K$ 
+  one \citet{Davis2027} uses to motivate Proposition 3.1---$S\,K\,K$ 
   and $I$ are distinct normal forms of weak combinatory logic that 
   agree on every argument, so no applicative context separates them.  
   What licenses the practice of this paper is therefore not Böhm's 
@@ -287,8 +287,8 @@ expansions grow with the program; the compiled-graph-reduction line
 that followed runs through the G-machine \citep{Johnsson1984}.  Our 
 own position is the awkward one of taking both: we lift as Hughes does 
 and then abstract each supercombinator into $\{S,K,I\}$, re-incurring 
-the growth he set out to avoid, and pay for it with the virtual machine
-semantics of \S\ref{sec:runtime}.  (A standard account of the 
+the growth he set out to avoid, and pay down this debt with the virtual 
+machine semantics of \S\ref{sec:runtime}.  (A standard account of the 
 whole pipeline has been given by \citet{PeytonJones1987}.)  The SKIM 
 tradition operated with a fixed set of recognized combinators executed 
 natively in microcode, an accelerated process comparable to the ``jet''
@@ -297,8 +297,9 @@ with the cost of any particular abstraction, in combinators per source
 symbol \citep{Noshita1985,JoyRaywardSmithBurton1985}, and we report atom
 counts in line with that tradition.
 
-In the preceding work, the interpreter lived either in a machine (Turner)
-or in microcode (SKIM), with the reduction engine as an external given.
+In the preceding research program, the interpreter lived either in a 
+machine (Turner) or in microcode (SKIM), with the reduction engine as 
+an external given.
 The object introduced by \citet{Davis2027} is a 618-atom 
 self-interpreter which exists as a term within the language it 
 interprets.  Previous supercombinator work has had no reason to write
@@ -322,11 +323,11 @@ emitted term is simultaneously the object of study and the key a VM
 matches on, whereas nobody expected to read the output of a SASL  
 compiler.
 
-This last merits an aside.  The virtual machine we are designing
-(\S\ref{sec:runtime}) would identify supercombinators of arbitrary size
+This last merits an aside.  A virtual machine 
+(\S\ref{sec:runtime}) may identify supercombinators of arbitrary size
 and reduce them against a table of known outcomes in native code (what
-we call a ``jet'', short for ``jet-accelerated code'').  It is not
-built, and no measurement in this paper depends on it.  Mechanically, such a procedure
+we call a ``jet'', short for ``jet-accelerated code'', a term from the 
+Nock computing lineage).  Mechanically, such a procedure
 corresponds to Turner's extended combinator set and SKIM's microcode.  
 However, our theorem does not licence arbitrary native code replacement;
 the interpreter jet performs a structural recognition that no
@@ -431,8 +432,8 @@ upper one.
 size.  Above the rule, the closed $\{S,K,I\}$ term in full; below it, 
 the same term named against the parts above by $\mathit{lift}$, which
 renames exact structural matches and nothing else.  Where several names
-share one term --- \texttt{Just} and \texttt{suc} are the same eight
-atoms --- the source's own name is shown.}\label{tab:whnfF}
+share one term---\texttt{Just} and \texttt{suc} are the same eight
+atoms---the source's own name is shown.}\label{tab:whnfF}
 \centering\footnotesize
 \begin{tabular}{@{}l r >{\raggedright\arraybackslash\ttfamily}p{\dimexpr\linewidth-66pt\relax}@{}}
 \toprule
@@ -480,7 +481,7 @@ can be read off the object itself.  This is perhaps the one piece of
 the surface's structure that survives bracket abstraction in a form a 
 reader can observe directly.  It does not run the other way: 
 \texttt{lift} names exact structural matches, so a lifted rendering can 
-name a subterm for a coincidence --- the \texttt{hd} in the 
+name a subterm for a coincidence---the \texttt{hd} in the 
 \texttt{whnfF} row is $\lambda n.\,n\;\texttt{Nothing}$, and reads as 
 \texttt{hd} only because \texttt{Nothing} is \texttt{K}.
 
@@ -827,8 +828,8 @@ that checkable rather than rhetorical.  The two cores differ in one
 equation, and the compiled terms differ by exactly what that equation
 costs: \texttt{stepErr} is 4 atoms in the first core and 7 in the
 second, and 768 and 771 differ by precisely those 3.  The difference
-propagates outward unchanged --- \texttt{step} is 684 against 687 and
-\texttt{loop1} 736 against 739 --- so nothing else in either
+propagates outward unchanged---\texttt{step} is 684 against 687 and
+\texttt{loop1} 736 against 739---so nothing else in either
 interpreter moved.  All the rest, some seven hundred atoms of spine
 walker, rebuilder, four default step equations and fuel loop, is
 generated from the three type declarations above them, and generated
@@ -993,8 +994,8 @@ We state this as a property the implementation enforces and tests on
 every program in its corpus, rather than as a theorem with a written
 proof; the formalization of the fragment is the obvious next piece of
 work and is not done here.  The type discipline itself stops at this
-stage.  A second stage --- Hindley--Milner over the declared sum types,
-so that \texttt{Suc K} is an error rather than a term --- is designed
+stage.  A second stage---Hindley--Milner over the declared sum types,
+so that \texttt{Suc K} is an error rather than a term---is designed
 and not built, and declarations already carry the field types it would
 need.
 
@@ -1021,10 +1022,27 @@ dictionary's own tests are over hashes, tie-breaks and $\mathit{lower}
 \circ \mathit{lift}$, and the probing lives where values are read.  The corpus is 18 programs written in both
 lexicons, and the suite is 736 tests.
 
-The evaluation is a single claim, made by equality of terms.  Six
-programs compile term-identically to artifacts \citet{Davis2027} built 
-by hand:
+Six programs fortuitiously compile term-identically to artifacts
+which \citet{Davis2027} built by hand (Table~\ref{tab:programs}).
+A reader may reasonably object that this is circular, since forms
+generated by the compiler were designed to reproduce those terms.
+The interpreter can be written out longhand, as twenty ordinary
+equations, and compiled with generation switched off; it then yields the
+same 618 atoms.  That establishes two things.  The generator emits
+surface syntax and adds no semantics beyond the kernel fold, since the
+generated and the written source compile to one term; and this
+compiler's bracket abstraction agrees atom for atom, and term for
+term, with the reference host's bracket abstraction over the same 
+equations.  It does not establish independence from the abstraction 
+algorithm, which both implementations share, nor from the equations 
+themselves, which are the equations of \citet{Davis2027}.  The longhand 
+source is in fact the generator's own rendered output, kept as user 
+source; what it isolates is the semantics of the comparison, not its 
+provenance.
 
+\begin{table}[tb]
+\centering
+\caption{Programs and their atom counts.}\label{tab:programs}
 \begin{center}\small
 \begin{tabular}{@{}lrl@{}}
 \toprule
@@ -1039,22 +1057,7 @@ program & atoms & \\
 \bottomrule
 \end{tabular}
 \end{center}
-
-A reader may reasonably object that this is circular, since the forms
-the compiler generates were designed to reproduce those terms.  It is
-worth being exact about what the first row does and does not discharge.
-The interpreter can be written out longhand, as twenty ordinary
-equations, and compiled with generation switched off; it then yields the
-same 618 atoms.  That establishes two things.  The generator emits
-surface syntax and adds no semantics beyond the kernel fold, since the
-generated and the written source compile to one term; and this
-compiler's bracket abstraction agrees atom for atom, and character for
-character, with the reference host's over the same equations.  It does
-not establish independence from the abstraction algorithm, which both
-implementations share, nor from the equations themselves, which are the
-equations of \citet{Davis2027}.  The longhand source is in fact the
-generator's own rendered output, kept as user source; what it isolates
-is the semantics of the comparison, not its provenance.
+\end{table}
 
 No performance claim is made here.  The reference host is an oracle and
 not an implementation: it reduces by substitution, counts every
@@ -1064,11 +1067,11 @@ earnest, another paper.
 
 \section{The virtual machine}\label{sec:runtime}
 
-The reference reducer is an oracle, and a language that intends to be
-used wants an implementation.  What that implementation must be is
-fixed, unusually, by a theorem rather than \emph{de gustibus}.  The two 
+The reference reducer is an oracle, but the language intends to be
+used and thus wants an implementation.  Unusually, what that implementation must  be is fixed by a theorem rather than
+\emph{de gustibus}.  The two
 operations the calculus cannot perform for itself are quoting a live 
-term and recognizing one's structure; the first belongs to the 
+term and recognizing one's structure; the first thus belongs to the 
 compiler, which has the syntax tree and quotes at compile time, and the 
 second belongs to the virtual machine, which holds the term on its tape 
 and may factorise it freely \citep{JayGivenWilson2011}.  Matching a 
@@ -1076,14 +1079,12 @@ compiled subterm against a table of known terms and running native code
 for it (a jet) is therefore not an optimization of something the 
 language has, but the only place the operation exists.
 
-The mechanism, we should say plainly, is old.  Recognizing a fixed set
-of combinators and executing them natively is Turner's extended
-combinator set and SKIM's microcode
+The recognition of a fixed set of combinators for native execution
+follows Turner's extended combinator set and SKIM's microcode
 \citep{Turner1979,ClarkeEtAl1980,StoyeClarkeNorman1984}, and a graph
-reducer with sharing is the same vintage.  What the theorem changes is
-the licence rather than the technique, and it yields exactly one rule: a
-jet may never quote on behalf of a running term, because the language
-guarantees to its users that nothing can.
+reducer with sharing is of the same vintage.  The theorem enforces
+one hard restriction: a jet may never quote on behalf of a running 
+term, because the language guarantees to its users that nothing can.
 
 Two properties of such a runtime bear on the claims made here, and both
 cut against convenience.  Jets change contraction counts, so a jetted
@@ -1092,9 +1093,8 @@ a reducer that updates a redex in place shares work the reference
 reducer repeats, which lowers those counts even with no jets installed;
 the paper's numbers are the reference's substitution semantics, and an
 implementation that wishes to reproduce them must decline to share.
-Values are unaffected either way.  A runtime is being built on these
-terms and is the subject of a separate paper; nothing in this one
-depends on it.
+Values are unaffected either way.  %A runtime is being built on these
+%terms.
 
 \section{Limitations}\label{sec:limits}
 
@@ -1105,28 +1105,29 @@ reification of a live value.  The missing operation is \emph{reify}, not
 \emph{eval}, and the distinction is the subject of this paper rather
 than a quibble about names.
 
-The language is not self-hosting, and we are not pursuing it.  It would
-be a smaller undertaking than it sounds --- the expander's input is a
+The language is not self-hosting, which capability is not currently a 
+design criterion for SKIjack.  This would
+be a smaller undertaking than it may sound---the expander's input is a
 syntax tree, which is Scott-encodable like any other datum, so the
 expander is separable from the parser and text handling could stay where
-it is.  What is forgone by declining is not a demonstration but the
+it is.  What is foregone by declining is the
 Futamura projections \citep{Futamura1971,JonesGomardSestoft1993} inside
 the calculus: an expander that is a term
 could be run under an interpreter and specialized, and the tower would
 gain a level with new content rather than another copy of the same
-interpreter.  We record the cost and leave it.  Nothing else here
+interpreter.  Nothing else here
 depends on it, and the compiler is metalevel by theorem in any case
 (\S\ref{sec:boundary}), so self-hosting would relocate quotation rather
 than remove it.
 
 The type discipline stops at the stage described in
 \S\ref{sec:boundary}.  The standard subject of \S\ref{sec:language} is
-specified but unbuilt, so library names are inlined and level-1 programs
+specified but unbuilt at time of submission, so library names are inlined and level-1 programs
 do not share a quoted library.  Qualified names parse and do not yet
 resolve.
 
 While the language is Turing-complete, certain functions are 
-transferred  to the virtual machine host, such as scaffolding the 
+transferred to the virtual machine host, such as scaffolding the 
 initial evaluation, preserving the state and memory arena, and 
 providing the supercombinator jet acceleration table.
 
@@ -1148,7 +1149,7 @@ and verifiable computing.
 
 A repository containing the specification and an implementation of the
 language used to produce the results in this paper is available at
-\url{https://github.com/sigilane/skijack}.
+\url{https://github.com/sigilante/skijack}.
 This requires only the Python package \texttt{aviary-kernel}.
 
 \bibliographystyle{ACM-Reference-Format}
