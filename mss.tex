@@ -1,13 +1,16 @@
 %% JFP, Episciences style.  jfp-epi is a thin skin over ACM's acmart,
 %% so acmart's documentation carries over; see jfp-epi-guide.pdf.
 %% [review] for submission; [final] once accepted.
-\documentclass[review]{jfp-epi}
+\documentclass[english,submission]{programming}
 
 %% The prose is written in author-year ("as \citet{Davis2025} shows"),
 %% so we ask for that rather than JFP's numeric default.  The guide's
 %% command is \citestyle; \setcitestyle is natbib's and is silently
 %% ignored here.
-\citestyle{acmauthoryear}
+\usepackage[backend=biber,natbib=true]{biblatex}
+\addbibresource{mss.bib}
+\usepackage{amssymb}
+\usepackage{csquotes}   % biblatex asks for it under babel
 
 %% acmart already provides geometry, amsmath, amssymb, amsthm and the
 %% theorem environments, booktabs, graphicx, xcolor, hyperref and natbib.
@@ -25,7 +28,7 @@
 \usepackage{listings}
 \lstset{basicstyle=\ttfamily\small,columns=fullflexible,
         keepspaces=true,frame=single,framesep=6pt,
-        captionpos=b,breaklines=true,xleftmargin=0pt,
+        captionpos=t,breaklines=true,xleftmargin=0pt,
         escapeinside={(*}{*)},
         literate=
           {≡}{{≡}}1 {≔}{{≔}}1 {↦}{{↦}}1 {→}{{→}}1 {⊢}{{⊢}}1 {∵}{{∵}}1 {▹}{{▹}}1 {λ}{{λ}}1
@@ -74,21 +77,64 @@
 \DeclareMathOperator{\Drop}{Drop}
 
 %% JFP style: titles, headings and captions are sentence case.
-\title[SKIjack]{SKIjack:\\A low-level native language for the $SKI$ calculus}
+\title{SKIjack:\\A low-level native language for the $SKI$ calculus}
+\titlerunning{SKIjack}
 
-\author{N. E. Davis}
-\orcid{0000-0002-1131-8319}
-\affiliation{%
-  \institution{ZeroAttest}
-  \city{Champaign, Illinois}
-  \country{United States of America}
-  \authoremail{neal.davis@protonmail.com}
+% CHECKHERE: author block rewritten for programming.cls (acmart's
+% \institution/\city/\country/\authoremail do not exist here).
+\author{N. E. Davis}[https://orcid.org/0000-0002-1131-8319]
+\affiliation{ZeroAttest, Champaign, Illinois, USA}
+\authorrunning{N. E. Davis}
+
+% CHECKHERE: keywords are new prose (JFP forbade them; Programming
+% requires one to five).
+\keywords{combinatory logic, SKI calculus, metacircular interpreters,
+  bracket abstraction, supercombinators}
+
+% CHECKHERE: ACM CCS 2012 classification is new; verify the concept_ids
+% against https://dl.acm.org/ccs before submission.
+\begin{CCSXML}
+<ccs2012>
+<concept>
+<concept_id>10011007.10011006.10011008</concept_id>
+<concept_desc>Software and its engineering~General programming languages</concept_desc>
+<concept_significance>500</concept_significance>
+</concept>
+<concept>
+<concept_id>10011007.10011006.10011041</concept_id>
+<concept_desc>Software and its engineering~Compilers</concept_desc>
+<concept_significance>300</concept_significance>
+</concept>
+<concept>
+<concept_id>10003752.10010124.10010131</concept_id>
+<concept_desc>Theory of computation~Program semantics</concept_desc>
+<concept_significance>300</concept_significance>
+</concept>
+</ccs2012>
+\end{CCSXML}
+\ccsdesc[500]{Software and its engineering~General programming languages}
+\ccsdesc[300]{Software and its engineering~Compilers}
+\ccsdesc[300]{Theory of computation~Program semantics}
+
+% CHECKHERE: submission metadata the class requires. perspective is one
+% of art / sciencetheoretical / scienceempirical / engineering; area is
+% open-ended (suggested list in the template guide, section 2.2).
+% License defaults to cc-by.
+\paperdetails{
+  perspective=art,
+  area={Interpreters, virtual machines and compilers},
 }
 
 
 
 \begin{document}
 
+
+\maketitle
+
+% CHECKHERE: abstract content unchanged, but Programming's checklist
+% requires it to state, in order: Context, Inquiry, Approach, Knowledge,
+% Grounding, Importance (<=500 words).
 \begin{abstract}
 We present SKIjack, a language for writing interpreted code over the 
 $SKI$ calculus to be evaluated in a metacircular fashion, whose feature 
@@ -111,7 +157,6 @@ declared path type and compared by structural equality on its encoding,
 and a blocked run is replayed under a namespace that only ever grows.
 \end{abstract}
 
-\maketitle
 
 
 \section{Introduction}\label{sec:intro}
@@ -432,7 +477,7 @@ renames exact structural matches and nothing else.  Where several names
 share one term---\texttt{Just} and \texttt{suc} are the same eight
 atoms---the source's own name is shown.}\label{tab:whnfF}
 \centering\footnotesize
-\begin{tabular}{@{}l r >{\raggedright\arraybackslash\ttfamily}p{\dimexpr\linewidth-66pt\relax}@{}}
+\begin{tabular}{@{}l r >{\raggedright\arraybackslash\ttfamily}p{\dimexpr\linewidth-73pt\relax}@{}}
 \toprule
 \textrm{part} & \textrm{atoms} & \textrm{expansion} \\
 \midrule
@@ -1212,8 +1257,7 @@ language used to produce the results in this paper is available at
 \url{https://github.com/sigilante/skijack}.
 This requires only the Python package \texttt{aviary-kernel}.
 
-\bibliographystyle{ACM-Reference-Format}
-\bibliography{mss}
+\printbibliography
 
 \appendix
 
