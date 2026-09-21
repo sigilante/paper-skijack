@@ -1,23 +1,27 @@
-\documentclass[11pt]{article}
-\usepackage[margin=1.1in]{geometry}
-\usepackage{fontspec}
-\setmonofont{Noto Sans Mono}
-\usepackage{amsmath,amssymb,amsthm}
-\usepackage{booktabs}
-\usepackage{enumitem}
+%% JFP, Episciences style.  jfp-epi is a thin skin over ACM's acmart,
+%% so acmart's documentation carries over; see jfp-epi-guide.pdf.
+%% [review] for submission; [final] once accepted.
+\documentclass[review]{jfp-epi}
+
+%% The prose is written in author-year ("as \citet{Davis2025} shows"),
+%% so we ask for that rather than JFP's numeric default.  The guide's
+%% command is \citestyle; \setcitestyle is natbib's and is silently
+%% ignored here.
+\citestyle{acmauthoryear}
+
+%% acmart already provides geometry, amsmath, amssymb, amsthm and the
+%% theorem environments, booktabs, graphicx, xcolor, hyperref and natbib.
+%% Loading any of them again -- especially hyperref with options -- is
+%% what breaks this class.  Only the extras belong here.
+\usepackage{enumitem}   % acmart does not load it; [nosep] needs it
+\usepackage{array}      % >{...} column specs and \arraybackslash
 \usepackage{longtable}
-\usepackage{array}
-\usepackage{calc}
 \usepackage{stmaryrd}
-\usepackage{xcolor}
-\usepackage{graphicx}
-\usepackage{multicol}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning,fit,backgrounds}
 \usepackage{pgfplots}
 \pgfplotsset{compat=1.18}
-\usepackage[colorlinks=true,linkcolor=blue!50!black,citecolor=blue!50!black,urlcolor=blue!50!black]{hyperref}
-\usepackage{natbib}
+\usepackage{multicol}
 \usepackage{listings}
 \lstset{basicstyle=\ttfamily\small,columns=fullflexible,
         keepspaces=true,frame=single,framesep=6pt,
@@ -27,7 +31,8 @@
           {≡}{{≡}}1 {≔}{{≔}}1 {↦}{{↦}}1 {→}{{→}}1 {⊢}{{⊢}}1 {∵}{{∵}}1 {▹}{{▹}}1 {λ}{{λ}}1
           {<}{{<}}1 {>}{{>}}1 {|}{{|}}1 {/}{{/}}1 {⊑}{{⊑}}1 {∘}{{∘}}1 {⇄}{{⇄}}1 {⋈}{{⋈}}1 {Υ}{{Υ}}1
           {≟}{{≟}}1 {₀}{{₀}}1 {₁}{{₁}}1 {₂}{{₂}}1 {₃}{{₃}}1 {₄}{{₄}}1 {₅}{{₅}}1 {₆}{{₆}}1
-          {₇}{{₇}}1 {₈}{{₈}}1 {₉}{{₉}}1 {₍}{{₍}}1 {₎}{{₎}}1}
+          {₇}{{₇}}1 {₈}{{₈}}1 {₉}{{₉}}1 {₍}{{₍}}1 {₎}{{₎}}1
+          {'}{{'}}1}
 % listings is not Unicode-aware: given a raw non-ASCII glyph it emits
 % the character outside its own output buffer, so the line comes out
 % reordered (U+27E8/U+27E9 moved everything between them to just after
@@ -40,21 +45,21 @@
 % to be mapped as well.  escapeinside stays available for anything that
 % still needs math mode.
 
+%% The JFP text block is 364pt and monospace runs 5.25pt per character,
+%% so a full-size verbatim line fits 69 characters; these listings were
+%% wrapped for the wider `article` measure.  \small buys 77.
+\makeatletter
+\renewcommand{\verbatim@font}{\small\ttfamily}
+\makeatother
+
+%% Carried over from the `article` preamble: file names set in \texttt
+%% are unbreakable, and a line holding two of them cannot be justified
+%% against the narrower JFP measure without it.
+\setlength{\emergencystretch}{3em}
+
 \definecolor{okgreen}{HTML}{2F7D32}
 \definecolor{openamber}{HTML}{B5651D}
 \definecolor{foldgray}{HTML}{4A4A4A}
-
-\newtheorem{theorem}{Theorem}[section]
-\newtheorem{lemma}[theorem]{Lemma}
-\newtheorem{proposition}[theorem]{Proposition}
-\newtheorem{corollary}[theorem]{Corollary}
-\newtheorem{conjecture}[theorem]{Conjecture}
-\theoremstyle{definition}
-\newtheorem{definition}[theorem]{Definition}
-\newtheorem{example}[theorem]{Example}
-\newtheorem{openproblem}{Open Problem}
-\theoremstyle{remark}
-\newtheorem{remark}[theorem]{Remark}
 \newcommand{\status}[1]{\textcolor{blue!45!black}{\textsf{[\,#1\,]}}}
 
 \newcommand{\NN}{\mathbb{N}}
@@ -68,19 +73,22 @@
 \DeclareMathOperator{\arity}{arity}
 \DeclareMathOperator{\Drop}{Drop}
 
+%% JFP style: titles, headings and captions are sentence case.
+\title[A self-interpreter for SKI]{A self-interpreter for $SKI$
+  written in $SKI$: Extensional semantics for new symbols}
 
-\providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
-\setlength{\emergencystretch}{3em}
-% Alternative titles, if "High-Level Native" is not earning its place:
-%   SKIjack: A Language Whose Staging Line Is a Theorem
-%   SKIjack: Metacircular Interpretation as a Language Feature over $SKI$
-%   SKIjack: Writing Interpreters for a Calculus That Cannot Quote
-\title{SKIjack:\\A High-Level Native Language for the $SKI$ Calculus}
-\author{N.\ E.\ Davis}
-\date{\today}
+\author{N. E. Davis}
+\orcid{0000-0002-1131-8319}
+\affiliation{%
+  \institution{Independent Researcher}
+  \city{Champaign, Illinois}
+  \country{United States of America}
+  \authoremail{neal.davis@protonmail.com}
+}
+
+
 
 \begin{document}
-\maketitle
 
 \begin{abstract}
 Over a homoiconic calculus the designer chooses where quotation happens.
@@ -97,9 +105,14 @@ furniture, so authoring the semantics of a new symbol---the core
 operation performed by hand in \citet{Davis2027}---becomes a two-line 
 edit.  Quotation is available at compile time only, and at the
 positions where a function would be asked to behave as data the checker
-statically refuses every occupant it can prove to be one.  A scry namespace is a language feature, with paths as 
-a declared type and blocking sound under an append-only namespace.
+statically refuses every occupant it can prove to be one.  A scry namespace is a language
+feature: a path is written as a literal of a declared path type and
+compared by structural equality on its encoding, and a blocked run is
+replayed under a namespace that only ever grows.
 \end{abstract}
+
+\maketitle
+
 
 \section{Introduction}\label{sec:intro}
 
@@ -412,10 +425,12 @@ upper one.
 \begin{table}[htb!]
 \caption{Every named part of the \texttt{whnfF} interpreter, ordered by 
 size.  Above the rule, the closed $\{S,K,I\}$ term in full; below it, 
-the same term named against the parts above by $\mathit{lift}$, which 
-renames exact structural matches as a macro.}\label{tab:whnfF}
+the same term named against the parts above by $\mathit{lift}$, which
+renames exact structural matches and nothing else.  Where several names
+share one term --- \texttt{Just} and \texttt{suc} are the same eight
+atoms --- the source's own name is shown.}\label{tab:whnfF}
 \centering\footnotesize
-\begin{tabular}{@{}l r >{\raggedright\arraybackslash\ttfamily}p{4.35in}@{}}
+\begin{tabular}{@{}l r >{\raggedright\arraybackslash\ttfamily}p{\dimexpr\linewidth-66pt\relax}@{}}
 \toprule
 \textrm{part} & \textrm{atoms} & \textrm{expansion} \\
 \midrule
@@ -432,7 +447,7 @@ renames exact structural matches as a macro.}\label{tab:whnfF}
 \texttt{spApp}  &  48 & S (S (K S) (S (K K) (S (K S) (S (K (S (K S))) (S (K K)))))) (K (S (K K) (S (K (S (S (K (S (K K))) (S (S (K S) (S (K K) (S (K S) (S (K (S I)) K)))) (K K))))) K))) \\
 \texttt{rb}     &  74 & S (K (S I I)) (S (S (K S) K) (K (S I I))) (S (K (S (S (K S) (S (K (S I)) K)))) (S (K (S (K K))) (S (S (K S) (S (K K) (S (K S) K))) (K (S (K (S (K K))) (S (K (S (K K))) (S (K (S (K K))) (S (S (K S) (S (K K) (S (K S) (S (K (S I)) K)))) (K K))))))))) \\
 \midrule
-\texttt{stepI1} & 86 & S (K (S (K just))) rb \\
+\texttt{stepI1} & 86 & S (K (S (K Just))) rb \\
 \texttt{stepK2} & 89 & S (K K) stepI1 \\
 \texttt{stepI} & 92 & S hd (K stepI1) \\
 \texttt{stepK1} & 99 & S (K (S hd)) (S (K K) stepK2) \\
@@ -904,9 +919,12 @@ canonical, so $\mathit{expand} \circ \mathit{render} = \mathit{lower}$;
 lifting a term against the dictionary names exact structural matches and
 nothing else, so $\mathit{lower} \circ \mathit{lift} = \mathit{id}$;
 checking can reject but never rewrite, so expansion is the same with it
-on or off; and every dictionary entry is verified behaviourally, by
-applying the term to fresh markers and observing which one comes back,
-never by reading its syntax.  The corpus is 17 programs written in both
+on or off; and wherever the suite reads a value out of a compiled term
+it does so behaviourally, applying the term to fresh markers and
+observing which one comes back rather than inspecting combinator syntax.
+The last is a discipline rather than a property of the dictionary: the
+dictionary's own tests are over hashes, tie-breaks and $\mathit{lower}
+\circ \mathit{lift}$, and the probing lives where values are read.  The corpus is 17 programs written in both
 lexicons, and the suite is 705 tests.
 
 The evaluation is a single claim, made by equality of terms.  Six
@@ -993,15 +1011,18 @@ reification of a live value.  The missing operation is \emph{reify}, not
 \emph{eval}, and the distinction is the subject of this paper rather
 than a quibble about names.
 
-The language is not self-hosting.  While self-compilation would need a 
-parser mapping text to the internal representation of SKIjack terms, the
-real reason lies in the interpreter tower.  The Futamura projections 
-inside the calculus mean that an expander that is a term could be run 
-under an interpreter and specialized, and the tower would gain a level 
-with new content rather than another copy of the same interpreter.  This
-is not prohibitive but has not been undertaken.  The operational
-overhead does not seem to merit the additional effort or reveal new
-premises for $SKI$ as a tool.
+The language is not self-hosting, and we are not pursuing it.  It would
+be a smaller undertaking than it sounds --- the expander's input is a
+syntax tree, which is Scott-encodable like any other datum, so the
+expander is separable from the parser and text handling could stay where
+it is.  What is forgone by declining is not a demonstration but the
+Futamura projections inside the calculus: an expander that is a term
+could be run under an interpreter and specialized, and the tower would
+gain a level with new content rather than another copy of the same
+interpreter.  We record the cost and leave it.  Nothing else here
+depends on it, and the compiler is metalevel by theorem in any case
+(\S\ref{sec:boundary}), so self-hosting would relocate quotation rather
+than remove it.
 
 The type discipline stops at the stage described in
 \S\ref{sec:boundary}.  The standard subject of \S\ref{sec:language} is
@@ -1027,7 +1048,14 @@ may spur further reflection and development in the field of efficient
 functional language implementation, as well as reconceptualization of
 the role of combinatory logic in the foundations of computer science.
 
-\bibliographystyle{plainnat}
+\section*{Data availability statement}
+
+A repository containing the specification and an implementation of the
+language used to produce the results in this paper is available at
+\url{https://github.com/sigilane/skijack}.
+This requires only the Python package \texttt{aviary-kernel}.
+
+\bibliographystyle{ACM-Reference-Format}
 \bibliography{mss}
 
 \appendix
@@ -1041,8 +1069,8 @@ lexicon typically replaces ASCII digraphs.)  Table~\ref{tab:tokens} lists the to
 \centering
 \begin{longtable}{@{}l l l@{}}
 \caption{The token table.  Below the rule are identifier glyphs: names
-rather than operators, and the only rows whose two spellings differ by
-a single character.}\label{tab:tokens} \\
+rather than operators, so they lex as identifiers and may be shadowed by
+a declaration, which no row above the rule may be.}\label{tab:tokens} \\
 \toprule
 ASCII & Unicode & meaning \\
 \midrule
