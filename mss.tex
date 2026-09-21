@@ -960,15 +960,16 @@ data structure.)
 As a small useful namespace that is more than a toy, we present a 
 character table: the stage of a parser that maps a source character to 
 the term it denotes.  It is worth separating because it is the one part 
-of parsing that is a lookup rather than a decomposition, and so the one 
-part that a calculus which cannot take terms apart can still do.  It
+of parsing that is a lookup rather than a decomposition, and thus the
+part that a calculus which cannot take terms apart can still carry 
+out.  It
 declares the segment type and the facts; we employ the \texttt{wfN}
 interpreter of \S\ref{sec:interpreters} unchanged.
 Listing~\ref{lst:chars} gives the code.
 The three-fact literal comes to 8{,}707 atoms.  The returns of the four
 programs are given in Table~\ref{tab:chars}.
 
-\begin{lstlisting}[label=lst:chars,float=tb,
+\begin{lstlisting}[label=lst:chars,float=b,
                    caption={A character table as a namespace, and four
                    programs that read from it.}]
 seg === Src | Ess | Kay | Eye
@@ -1170,7 +1171,8 @@ of \citet{Davis2027}.  And a reducer that updates a redex in place
 shares work the reference reducer repeats, which lowers those counts 
 even with no jets installed; the paper's numbers are the reference's 
 substitution semantics, and an implementation that wishes to reproduce 
-them must decline to share. Results must be unaffected either way---and are verified identical in the experiments.  %A runtime is being built on these
+them must decline to share. Results must be unaffected either way and 
+have been verified identical in the experiments.  %A runtime is being built on these
 %terms.
 
 \section{Limitations}\label{sec:limits}
