@@ -126,26 +126,22 @@
 % Programming's checklist requires the abstract to state, in order: 
 % Context, Inquiry, Approach, Knowledge, Grounding, Importance
 % (<=500 words).
-% CHECKHERE: new abstract, drafted in Programming's required order --
-% context, inquiry, approach, knowledge, grounding, importance -- as six
-% paragraphs without headings, which is how the template's own abstract
-% does it. Expected action: rework the voice where it isn't yours, keep
-% the order, keep it under 500 words, then delete this comment.
 \begin{abstract}
 Over a homoiconic calculus the designer chooses where quotation
 happens, and the metacircular tradition gets it for free.  Over the
 $SKI$ combinator calculus no such choice exists: no closed term quotes
-every live term, so reification is metalevel by theorem and a
-language's staging boundary is fixed before its syntax is.
+every live term so reification is metalevel by theorem and a
+language's staging boundary is fixed prior to even its syntax.
 \citet{Davis2027} built a 618-atom self-interpreter for $SKI$ in $SKI$
-and authored the semantics of new symbols at one site of it, by hand.
+and authored the semantics of new symbols at one site of it, by hand,
+suggesting the desirability of a more declarative approach.
 
 We ask what language that discipline permits: whether the hand
 construction can become declarations without changing the terms it
 produces, and what the theorem forces on the language's shape rather
 than leaves to taste.
 
-SKIjack's feature set is read off the artifact rather than designed.
+The feature set of SKIjack is read off the artifact as a consequence.
 Its fuel loop, dispatch, spine walker and atoms each become a surface
 construct, and declaring an object language generates an interpreter's
 furniture.  A program runs at one of two levels; at the second, a
@@ -157,24 +153,22 @@ namespace that only grows.  Quotation is available at compile time
 only, and a checker refuses every occupant of a data position it can
 prove to be a function.
 
-Six programs compile to the hand-built artifacts atom for atom.  Two
-interpreters differing in one equation differ by exactly the three
-atoms that equation costs.  A scry is a redex rather than an effect: a
+We demonstrate six SKIjack programs which compile to the hand-built 
+artifacts atom for atom.  A lookup is a redex rather than an effect: a
 lookup discarded by $K$ is never performed, and one left unforced under
 an unsaturated $S$ comes back unread.  Lookup cost is linear in a fact's
 position in the literal.  The same term is quotable as a name and
 refused as a parameter, which locates the line between eval and reify
 at when a term is known rather than what it is.
 
-Every claim is an exact term identity or a contraction count on a
-reference reducer, reproducible from the artifact's corpus and pinned by
-its tests; values are read behaviourally, never by inspecting
-combinator syntax.  No performance claim is made.
+A claim is an exact term identity or a contraction count on a
+reference reducer; values are read behaviourally, not by inspecting
+combinator syntax.
 
 Over a non-homoiconic instruction set the staging line is a theorem
 rather than a design decision, and a language can make it visible in
 its syntax.  Interpreters and namespaces are then ordinary terms a
-program names, which is the ground a native runtime will stand on.
+program names, the ground on which a native runtime will stand.
 \end{abstract}
 
 
@@ -1218,12 +1212,12 @@ However, the same quotation over a parameter does not compile:
 \ttfamily f x = <x>
 \end{quote}
 \noindent
-Stage A refuses it, reporting that \texttt{x} ``names neither table: it
+Stage A refuses, reporting that \texttt{x} ``names neither table: it
 is not a constructor of the object type \texttt{term} and not a level-0
 name''.  Had \texttt{f} been applied to \texttt{k2}, the datum
-the program is asking for is the one that \texttt{<k2>} already
-emits; the compiler can write that encoding, and does, two lines
-earlier.  What differs is \emph{when} the term is known.  A level-0
+the program requests is the same that \texttt{<k2>} already
+emits; the compiler can and does write that encoding two lines
+earlier.  What differs is \emph{when} the term is known.  A \mbox{level-0}
 name is resolved before anything runs, so quoting it is a compile-time
 lookup; a parameter is bound while something runs, and recovering a
 term from the value it has been given is the operation the calculus
