@@ -1019,7 +1019,7 @@ observing which one comes back rather than inspecting combinator syntax.
 The last is a discipline rather than a property of the dictionary: the
 dictionary's own tests are over hashes, tie-breaks and $\mathit{lower}
 \circ \mathit{lift}$, and the probing lives where values are read.  The corpus is 18 programs written in both
-lexicons, and the suite is 736 tests.
+lexicons, and the suite is 737 tests.
 
 Six programs fortuitiously compile term-identically to artifacts
 which \citet{Davis2027} built by hand (Table~\ref{tab:programs}).
@@ -1098,11 +1098,47 @@ Values are unaffected either way.  %A runtime is being built on these
 \section{Limitations}\label{sec:limits}
 
 SKIjack has evaluation of encoded terms, including terms built at
-run time: that is what an interpreter applied to a datum is, and the
-tower of \citet{Davis2027} is nothing else.  What it lacks is
-reification of a live value.  The missing operation is \emph{reify}, not
-\emph{eval}, and the distinction is the subject of this paper rather
-than a quibble about names.
+run time.  However, even with \texttt{eval}, it lacks
+\emph{reification} of a live value, for reasons discussed in
+\S\ref{sec:design-principles}.
+
+The line is visible in the compiler, and it does not fall where a
+reader coming from a homoiconic language expects.  Writing an encoding
+down is ordinary, and so is naming one.  Given the definition
+\texttt{k2 = K K}, the program \texttt{whnfF |- <k2>@10} compiles
+without complaint, at 741 atoms; so does \texttt{whnfF |- <I K>@10}, at
+739.  In both the compiler knows before anything runs which term the
+quotation contains, and emits its encoding.
+
+The same quotation over a parameter does not compile:
+\begin{quote}
+\ttfamily f x = <x>
+\end{quote}
+\noindent
+Stage A refuses it, reporting that \texttt{x} ``names neither table: it
+is not a constructor of the object type \texttt{term} and not a level-0
+name''.  The refusal is worth reading carefully, because it is not
+about the value.  Had \texttt{f} been applied to \texttt{k2}, the datum
+the program is asking for is precisely the one \texttt{<k2>} already
+emits; the compiler can write that encoding, and does, two lines
+earlier.  What differs is \emph{when} the term is known.  A level-0
+name is resolved before anything runs, so quoting it is a compile-time
+lookup; a parameter is bound while something runs, and recovering a
+term from the value it has been given is the operation the calculus
+does not have.
+
+This is the sense in which the missing operation is \emph{reify} rather
+than \emph{eval}.  Evaluation is available and needs no special
+support: an interpreter is an ordinary term, and applying it to a datum
+is an ordinary application, which is the whole of \citet{Davis2027}'s
+tower.  Reification would have to run the other way, from a live value
+to a datum describing it, and Proposition~3.1 denies any closed term
+that does so for every argument.  SKIjack therefore does not forbid
+reification so much as decline to pretend it has it: quotation is a
+compile-time construct, the checker of \S\ref{sec:boundary} refuses the
+occupants it can prove to be functions, and what remains is a language
+in which the staging line is visible in the syntax rather than
+discovered at run time.
 
 The language is not self-hosting, which capability is not currently a 
 design criterion for SKIjack.  This would
@@ -1143,16 +1179,17 @@ construction; six programs compile to the artifacts of
 \citet{Davis2027} atom for atom.
 Finally, a namespace is an ordinary core parameter rather than a 
 primitive, which is what makes its cost legible: a literal is an 
-association list, and a hit is linear in where the fact sits.
+association list, and a hit is linear in where the fact sits.  (One 
+could countenance optimizing this with a more sophisticated 
+data structure.)
 
 This is not, of course, performant!  The reference host is an oracle; 
 what a runtime would do with these terms is \S\ref{sec:runtime} 
 and, in earnest, other work. The standard subject of
 \S\ref{sec:standard-subject} is specified and unbuilt, and with it the 
 tokenization half of \S\ref{sec:chars}. Self-hosting is declined deliberately at the current time, per \S\ref{sec:limits}.
-
 Rather, the exploration
-of supercombinator techniques by SKIjack and its virtual machine(s)
+of supercombinator techniques by \mbox{SKIjack} and its virtual machine(s)
 may spur further reflection and development in the field of efficient 
 functional language implementation, as well as reconceptualization of
 the role of combinatory logic in the foundations of computer science
