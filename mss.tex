@@ -330,6 +330,8 @@ operation the language has.  The operational consequence of this
 prohibits a jet from quoting on behalf of a running term.  The
 VM is addressed briefly in \S\ref{sec:runtime}.
 
+The metacircular and reflective-tower literature is surveyed in \citet{Davis2027} and not repeated here; this section covers the combinator-machine lineage specific to SKIjack's design.
+
 \section{The interpreter}\label{sec:interpreter}
 
 The \texttt{whnfF} function (Listing~\ref{lst:whnfF}) forms the centerpiece of the interpreter, 
@@ -746,6 +748,17 @@ The levels differ in what is observable.  At level 1, a program's steps
 are counted, its divergence is bounded, its errors are values, and its
 scry operation can block.  All of these are available because the
 interpreter is itself an ordinary term the program may name.
+
+This is a tower in the sense of \citet{Smith1984}, with one structural
+difference that is the subject of this paper.  In a reflective tower the
+levels are crossed at run time: a procedure reifies the environment and
+continuation it is running under, acts on them as data, and reflects the
+result back.  Over $SKI$ the upward crossing is unavailable, since
+Proposition~3.1 denies any closed term that reifies every live term, so
+the tower here is declared rather than climbed.  There are exactly two
+levels, the boundary between them is fixed before the program runs, and
+what a reflective language settles as a design decision this calculus
+settles as a theorem.
 Such \mbox{virtualization} is not cheap, in any case:
 \citet{Davis2027} measured the base interpreter at 340 host 
 contractions for a single object step.
