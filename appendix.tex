@@ -24,12 +24,17 @@ is generated from $D$'s case form.  It \emph{canonicalizes}: it maps a value to
 the code of the unique constructor term it behaves as, so $S\,(K\,K)\,I$ and
 $S\,K\,K\,K$ both lift to $\langle K\rangle$ at \texttt{Bool}.  Equality on $D$
 is then decidable by comparing codes, which is the only equality the language
-needs on data.
+needs on data.  (The Stage A checker as implemented refuses
+\texttt{EQ (L v) (L w)} written directly, since it reads the operand's head
+equation as a function, though it accepts the same comparison one binder
+away; see the errata below.)
 
 \paragraph{Functions with compact arguments.}  At $\mathtt{Bool} \to
 \mathtt{Bool}$ a function is lifted by probing it at both booleans and emitting
-the code of a case.  The same idea goes further than finite arguments.  Let
-$C = \mathtt{Nat} \to \mathtt{Bool}$ be Cantor space, as lazy streams of bits.
+the code of a case; this is mechanized as \texttt{LiftBool.lift\_bool} in
+\texttt{lean-ski} (\texttt{Ski/LiftBool.lean}).  The same idea goes further than
+finite arguments.  Let $C$ be Cantor space, as lazy Scott streams of bits (not
+literally functions on Scott numerals).
 Berger's search\footnote{U.~Berger,
 \emph{Totale Objekte und Mengen in der Bereichstheorie}, PhD thesis, LMU
 M\"unchen, 1990; M.~H.~Escard\'o, ``Exhaustible sets in higher-type
@@ -41,12 +46,15 @@ decides, for a total $F : C \to \mathtt{Bool}$, whether $F$ is constant.  So
 \mathit{Node}\,(\mathit{tree}\,(F \circ \mathit{cons}\,0))\,
 (\mathit{tree}\,(F \circ \mathit{cons}\,1))
 \]
-terminates, since a total $F$ on the compact space $C$ is uniformly continuous,
+reaches a finite tree datum when $F$ forces only its first $m$ bits for some
+$m$ (an $m$-local $F$; a total $F$ on the compact space $C$ is uniformly
+continuous, which gives this through the fan argument),
 and $L_{C \to \mathtt{Bool}}\,F = \mathit{App}\,\langle \mathit{EvalT}\rangle\,
 (L_{\mathit{Tree}}\,(\mathit{tree}\,F))$ is a behavioural lift: data lift
 composed with tabulation.  Its only quotations are compile-time codes of
 level-0 names ($\mathit{EvalT}$, $\mathit{Leaf}$, $\mathit{Node}$ and the
-booleans), so it respects the staging discipline of \S\ref{sec:boundary}.  It also canonicalizes, at a type of
+booleans), so it respects the staging discipline of \S\ref{sec:boundary} as
+intended.  It also canonicalizes, at a type of
 functions.  The check \texttt{checks/cantor.py} (standalone, graph
 reduction, about 1.5\,s) lifts ten functionals in closed $\{S,K,I\}$ and
 compares each code with its functional on 765 streams.  Pairs that differ
@@ -54,30 +62,34 @@ only in how they compute (\texttt{a0 or not a0} and \texttt{true};
 \texttt{a1 ? a0 : a0} and \texttt{a0}) receive identical codes.  The parity
 of six bits lifts in $192{,}917$ contractions to a $2{,}225$-atom code.
 
-The positive result needs care about totality.  It holds for $F$ total on
-every point of $C$.  If $F$ need only be total on the \emph{definable}
-streams, Kleene's tree gives a computable $F$ that is not uniformly
-continuous on them, and the search diverges.  The relation $\simeq$ at $C$
-must therefore quantify over all points.
+The positive result needs care about totality.  It holds for $m$-local $F$,
+which totality on all points of a model with non-definable points implies.
+Over closed terms alone (the frame of the negative result below) it fails:
+Kleene's tree gives a computable $F$ total on every definable stream but not
+uniformly continuous on them, and the search diverges.  A paper proof for
+$m$-local $F$ is in preparation; it is not mechanized.
 
 \paragraph{Non-compact arguments.}  At $\mathtt{Nat} \to \mathtt{Bool}$ no
-behavioural lift exists.  Sketch: implement the constant-false function by
-recursion, $f = Y\,\Phi$.  If $L\,f \twoheadrightarrow \langle c\rangle$, a
-continuity theorem for weak reduction gives some $k$ with
-$L\,(\Phi^k\,\Omega) \twoheadrightarrow \langle c\rangle$, and genericity then
-gives $L\,(\Phi^k\,G) \twoheadrightarrow \langle c\rangle$ for $G$ the
-constant-true function.  But $\Phi^k\,G$ differs from $f$ at $k$, and one code
-cannot behave as both.  The two lemmas are standard for the
-$\lambda$-calculus; their weak-CL forms are not yet mechanized, so this half
-is a proof sketch.
+behavioural lift exists, and this is mechanized: \texttt{NoLift.no\_lift\_conv}
+in \texttt{lean-ski} (\texttt{Ski/NoLift.lean}, master \texttt{d960d8a}) shows that no closed $L$ sends
+every function total on the Scott numerals to a term convertible with a code
+that agrees with it on every numeral.  The proof is a stuttering simulation.
+Head reduction cannot tell an infinite numeral from a large enough finite one
+within a bounded number of steps, so $L$ gives ``constantly false'' and ``false
+up to $n{+}1$, true above'' the same code; they differ at $n{+}2$.  It forbids
+only a single uniform $L$: lifts over bounded domains, with a supplied modulus,
+or into lazy (infinite) tabulations are untouched.
 
 So the staging line falls by \emph{compactness} of argument types, not by
 the distinction between data and functions.  We conjecture that behavioural
 reification exists at $A$ exactly when every argument type in $A$ is
 exhaustible in Escard\'o's sense, which includes finite types and Cantor
-space and excludes $\mathtt{Nat}$ and Baire space.  Proposition~3.1 is
-untouched.  It concerns syntax, and none of the lifts above recovers a
-term's syntax, only its behaviour.
+space and excludes $\mathtt{Nat}$ and Baire space.  The comparison holds modulo
+two gaps: the fan step from all-points totality to $m$-locality, and the
+stream representation of $C$.  Proposition~3.1 is untouched.  It concerns
+syntax: none of the lifts above recovers the syntax of an arbitrary term,
+only a behaviourally equal canonical one (on a finite set of separable normal
+terms an exact quoter is trivial, which Proposition~3.1 allows).
 
 \paragraph{Self-reference without runtime quotation.}  The paragraph on
 self-hosting should also note that self-reference does not need runtime
@@ -90,3 +102,35 @@ intensional recursion of \citet{Kavvos2017}, realized inside SKIjack's
 discipline, and is mechanized as \texttt{Ifix.ifix} and \texttt{Ifix.quine}
 in \texttt{lean-ski} (\url{https://github.com/sigilante/lean-ski},
 \texttt{Ski/Ifix.lean}, commit \texttt{6c92722}).
+
+\paragraph{Errata to the main text.}  Several sentences say that reification is
+impossible where only \emph{syntactic, uniform} reification is: no term carries
+\emph{every} live term to \emph{its own} code.  On revision:
+\begin{itemize}
+\item ``reification is metalevel by theorem'' (introduction and conclusion):
+  \emph{syntactic} reification;
+\item the abstract's eval/reify line: the line between eval and \emph{syntactic}
+  reify;
+\item ``code can never cross back over into data'' and ``everything that would
+  turn a live value back into data is unavailable'': no term turns an
+  arbitrary live value into \emph{its syntax};
+\item the application tree ``cannot be inspected by any term'': not for every
+  argument;
+\item ``recovering a term from the value it has been given'': recovering
+  \emph{the} term;
+\item the limitations passage, ``a datum describing it'': a datum
+  \emph{spelling} it;
+\item ``a jet may never quote on behalf of a running term, because the language
+  guarantees to its users that nothing can'': because a jet must compute what
+  its term computes, and no term quotes every live term.  (The staging line is
+  not a confidentiality boundary: a term that holds a function can already
+  probe it.)
+\item ``refuses every occupant of a data position it can prove to be a
+  function'' and ``no accepted program contains a provable function in a data
+  position'': the implemented check reads an equation as a function only when
+  it has binders, so it accepts \texttt{EQ k2 k2} with \texttt{k2 = K K}, and it
+  refuses some data operands whose head is a saturated equation.  Either the
+  check is tightened or the claim is restated as ``every occupant whose
+  syntactic head it recognizes as a function''.
+\end{itemize}
+
