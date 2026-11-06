@@ -24,10 +24,9 @@ is generated from $D$'s case form.  It \emph{canonicalizes}: it maps a value to
 the code of the unique constructor term it behaves as, so $S\,(K\,K)\,I$ and
 $S\,K\,K\,K$ both lift to $\langle K\rangle$ at \texttt{Bool}.  Equality on $D$
 is then decidable by comparing codes, which is the only equality the language
-needs on data.  (The Stage A checker as implemented refuses
-\texttt{EQ (L v) (L w)} written directly, since it reads the operand's head
-equation as a function, though it accepts the same comparison one binder
-away; see the errata below.)
+needs on data.  (The Stage A checker refused \texttt{EQ (L v) (L w)} written
+directly, reading any equation with binders as a function; with the arity
+rule of the errata below it accepts the comparison, and so does Stage B.)
 
 \paragraph{Functions with compact arguments.}  At $\mathtt{Bool} \to
 \mathtt{Bool}$ a function is lifted by probing it at both booleans and emitting
@@ -125,12 +124,22 @@ impossible where only \emph{syntactic, uniform} reification is: no term carries
   its term computes, and no term quotes every live term.  (The staging line is
   not a confidentiality boundary: a term that holds a function can already
   probe it.)
-\item ``refuses every occupant of a data position it can prove to be a
-  function'' and ``no accepted program contains a provable function in a data
-  position'': the implemented check reads an equation as a function only when
-  it has binders, so it accepts \texttt{EQ k2 k2} with \texttt{k2 = K K}, and it
-  refuses some data operands whose head is a saturated equation.  Either the
-  check is tightened or the claim is restated as ``every occupant whose
-  syntactic head it recognizes as a function''.
+\item the boundary-soundness list ``\ldots{} a bare combinator, \ldots{} an
+  equation with binders, \ldots'': the check as implemented read an equation
+  as a function exactly when it had binders.  So Stage A accepted \texttt{EQ k2
+  k2} with \texttt{k2 = K K}, against ``refuses every occupant of a data
+  position it can prove to be a function'', and it refused data such as
+  \texttt{EQ (two Zero) (two Zero)}.  The rule is now by arity: a combinator or
+  an equation applied to fewer arguments than it takes, or a saturated
+  equation whose body is one of the listed functions
+  (\url{https://github.com/sigilante/SKIjack/pull/41}).  Stage B already refused
+  both counterexamples, so a default compile was never exposed.
+\item ``A second stage, such as Hindley--Milner over the declared sum types
+  \ldots{} is contemplated but unbuilt'': it is built (\texttt{typecheck.py}),
+  runs after Stage A on every compile and on \texttt{--check}, and refuses a
+  function in an \texttt{EQ} operand through binders, which closes the gap the
+  boundary-soundness section leaves to it.  The guarantee ``no accepted program
+  contains a provable function in a data position'' is then a property of the
+  two stages together.
 \end{itemize}
 
