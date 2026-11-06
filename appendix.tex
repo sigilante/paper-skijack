@@ -1,0 +1,92 @@
+% appendix.tex -- addendum filed 2026-11-06 while the paper is under review.
+% Not \input by mss.tex.  To include it, add \input{appendix} after \appendix.
+% It refines the reification remark in the Limitations discussion and the
+% self-hosting paragraph that follows it.
+
+\section{Addendum: where reification is possible}\label{app:reify}
+
+The limitations discussion says that reification, from a live value to a datum
+describing it, is denied by Proposition~3.1 of \citet{Davis2027} for every
+argument.  That holds for \emph{syntactic} reification: no closed $Q$ has
+$Q\,M \twoheadrightarrow \langle M\rangle$ for every $M$.  It should not be read
+as excluding \emph{behavioural} reification, which asks less: a term $L_A$ such
+that for every value $v$ of type $A$, $L_A\,v \twoheadrightarrow \langle v'\rangle$
+for some $v'$ that behaves as $v$ does at type $A$.  Here ``behaves as'' is the
+logical relation $\simeq_A$: equality of normal forms at a data type, and at
+$A \to B$, agreement at $B$ on all related arguments.  Behavioural reification
+exists at some types and not others, and the line between them is not the line
+between data and functions.
+
+\paragraph{Data types.}  For a declared Scott type $D$ with constructors
+$C_1, \ldots, C_n$, the lift $L_D = \lambda v.\, v\,\kappa_1 \cdots \kappa_n$
+(each $\kappa_i$ rebuilds $\langle C_i \ldots\rangle$ from the lifted fields)
+is generated from $D$'s case form.  It \emph{canonicalizes}: it maps a value to
+the code of the unique constructor term it behaves as, so $S\,(K\,K)\,I$ and
+$S\,K\,K\,K$ both lift to $\langle K\rangle$ at \texttt{Bool}.  Equality on $D$
+is then decidable by comparing codes, which is the only equality the language
+needs on data.
+
+\paragraph{Functions with compact arguments.}  At $\mathtt{Bool} \to
+\mathtt{Bool}$ a function is lifted by probing it at both booleans and emitting
+the code of a case.  The same idea goes further than finite arguments.  Let
+$C = \mathtt{Nat} \to \mathtt{Bool}$ be Cantor space, as lazy streams of bits.
+Berger's search\footnote{U.~Berger,
+\emph{Totale Objekte und Mengen in der Bereichstheorie}, PhD thesis, LMU
+M\"unchen, 1990; M.~H.~Escard\'o, ``Exhaustible sets in higher-type
+computation'', \emph{Logical Methods in Computer Science} 4(3:3), 2008.}
+decides, for a total $F : C \to \mathtt{Bool}$, whether $F$ is constant.  So
+\[
+\mathit{tree}\,F = \textbf{if } \mathit{const}\,F \textbf{ then }
+\mathit{Leaf}\,(F\,0^\omega) \textbf{ else }
+\mathit{Node}\,(\mathit{tree}\,(F \circ \mathit{cons}\,0))\,
+(\mathit{tree}\,(F \circ \mathit{cons}\,1))
+\]
+terminates, since a total $F$ on the compact space $C$ is uniformly continuous,
+and $L_{C \to \mathtt{Bool}}\,F = \mathit{App}\,\langle \mathit{EvalT}\rangle\,
+(L_{\mathit{Tree}}\,(\mathit{tree}\,F))$ is a behavioural lift: data lift
+composed with tabulation.  Its only quotations are compile-time codes of
+level-0 names ($\mathit{EvalT}$, $\mathit{Leaf}$, $\mathit{Node}$ and the
+booleans), so it respects the staging discipline of \S\ref{sec:boundary}.  It also canonicalizes, at a type of
+functions.  The check \texttt{paper/checks/cantor.py} (standalone, graph
+reduction, about 1.5\,s) lifts ten functionals in closed $\{S,K,I\}$ and
+compares each code with its functional on 765 streams.  Pairs that differ
+only in how they compute (\texttt{a0 or not a0} and \texttt{true};
+\texttt{a1 ? a0 : a0} and \texttt{a0}) receive identical codes.  The parity
+of six bits lifts in $192{,}917$ contractions to a $2{,}225$-atom code.
+
+The positive result needs care about totality.  It holds for $F$ total on
+every point of $C$.  If $F$ need only be total on the \emph{definable}
+streams, Kleene's tree gives a computable $F$ that is not uniformly
+continuous on them, and the search diverges.  The relation $\simeq$ at $C$
+must therefore quantify over all points.
+
+\paragraph{Non-compact arguments.}  At $\mathtt{Nat} \to \mathtt{Bool}$ no
+behavioural lift exists.  Sketch: implement the constant-false function by
+recursion, $f = Y\,\Phi$.  If $L\,f \twoheadrightarrow \langle c\rangle$, a
+continuity theorem for weak reduction gives some $k$ with
+$L\,(\Phi^k\,\Omega) \twoheadrightarrow \langle c\rangle$, and genericity then
+gives $L\,(\Phi^k\,G) \twoheadrightarrow \langle c\rangle$ for $G$ the
+constant-true function.  But $\Phi^k\,G$ differs from $f$ at $k$, and one code
+cannot behave as both.  The two lemmas are standard for the
+$\lambda$-calculus; their weak-CL forms are not yet mechanized, so this half
+is a proof sketch.
+
+So the staging line falls by \emph{compactness} of argument types, not by
+the distinction between data and functions.  We conjecture that behavioural
+reification exists at $A$ exactly when every argument type in $A$ is
+exhaustible in Escard\'o's sense, which includes finite types and Cantor
+space and excludes $\mathtt{Nat}$ and Baire space.  Proposition~3.1 is
+untouched.  It concerns syntax, and none of the lifts above recovers a
+term's syntax, only its behaviour.
+
+\paragraph{Self-reference without runtime quotation.}  The paragraph on
+self-hosting should also note that self-reference does not need runtime
+quotation.  From one compile-time quotation and re-encoding ($R\,\langle t
+\rangle \twoheadrightarrow \langle\langle t\rangle\rangle$, a data
+transformation), every closed $g$ has a term $t$ with $t \twoheadrightarrow
+g\,\langle t\rangle$: take $t = h\,\langle h\rangle$ with $h = \lambda y.\,
+g\,(\mathit{App}\,y\,(R\,y))$.  With $g = I$ this gives a quine.  This is the
+intensional recursion of \citet{Kavvos2017}, realized inside SKIjack's
+discipline, and is mechanized as \texttt{Ifix.ifix} and \texttt{Ifix.quine}
+in \texttt{lean-ski} (\url{https://github.com/sigilante/lean-ski},
+\texttt{Ski/Ifix.lean}, commit \texttt{6c92722}).
