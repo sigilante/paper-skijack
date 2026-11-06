@@ -47,7 +47,7 @@ and $L_{C \to \mathtt{Bool}}\,F = \mathit{App}\,\langle \mathit{EvalT}\rangle\,
 composed with tabulation.  Its only quotations are compile-time codes of
 level-0 names ($\mathit{EvalT}$, $\mathit{Leaf}$, $\mathit{Node}$ and the
 booleans), so it respects the staging discipline of \S\ref{sec:boundary}.  It also canonicalizes, at a type of
-functions.  The check \texttt{paper/checks/cantor.py} (standalone, graph
+functions.  The check \texttt{checks/cantor.py} (standalone, graph
 reduction, about 1.5\,s) lifts ten functionals in closed $\{S,K,I\}$ and
 compares each code with its functional on 765 streams.  Pairs that differ
 only in how they compute (\texttt{a0 or not a0} and \texttt{true};
